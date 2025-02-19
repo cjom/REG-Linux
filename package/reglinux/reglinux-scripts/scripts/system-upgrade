@@ -145,7 +145,7 @@ case $1 in
 
         if [ -n "$latestrelease" ]        # New releases are available
         then
-            url="https://github.com/REG-Linux/REG-Linux/releases/download/${latestrelease}/boot-${board}.tar.zst"
+            url="https://github.com/ChokoGroup/REG-Linux/releases/download/${latestrelease}/boot-${board}.tar.zst"
             do_download
         else
             echo "No new release found."

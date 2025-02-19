@@ -22,7 +22,7 @@ endef
 
 define LIBRETRO_FBALPHA_INSTALL_TARGET_CMDS
 	$(INSTALL) -D $(@D)/svn-current/trunk/fbalpha2012_libretro.so \
-		$(TARGET_DIR)/usr/lib/libretro/fbalpha_libretro.so
+		$(TARGET_DIR)/usr/lib/libretro/fbalpha2012_libretro.so
 endef
 
 $(eval $(generic-package))

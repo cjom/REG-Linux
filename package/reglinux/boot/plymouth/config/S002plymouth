@@ -8,7 +8,7 @@ case "$1" in
     ;;
     stop)
         # Shutdown splash with "game over" was set by S12populateshare
-        /usr/bin/plymouth --wait quit --retain-splash
+        /usr/bin/plymouth --wait quit       # --retain-splash
     ;;
     *)
 esac

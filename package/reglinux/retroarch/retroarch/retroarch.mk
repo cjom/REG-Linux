@@ -143,6 +143,10 @@ ifeq ($(BR2_riscv),y)
 	RETROARCH_TARGET_CFLAGS += -DMESA_EGL_NO_X11_HEADERS=1
 endif
 
+ifeq ($(BR2_PACKAGE_BATOCERA_TARGET_CHA),y)
+	TARGET_CONFIGURE_OPTS += HAVE_LAKKA=1 HAVE_LAKKA_PROJECT="CHA.arm" HAVE_LAKKA_SERVER="https://updates.reglinux.org" HAVE_WIFI=1 HAVE_NETWORKING=1 HAVE_BLUETOOTH=0 HAVE_FREETYPE=1 HAVE_CHOKOGROUP=1
+endif
+
 define RETROARCH_CONFIGURE_CMDS
 	(cd $(@D); rm -rf config.cache; \
 		$(TARGET_CONFIGURE_ARGS) \
@@ -157,6 +161,10 @@ define RETROARCH_CONFIGURE_CMDS
 endef
 
 define RETROARCH_BUILD_CMDS
+	sed -i "s|\"SAMBA\"|\"SAMBA\/NFS\"|g" $(@D)/intl/msg_hash_*.h
+	sed -i "s| SAMBA| SAMBA\/NFS|g" $(@D)/intl/msg_hash_*.h
+	sed -i "s|SAMBA |SAMBA\/NFS |g" $(@D)/intl/msg_hash_*.h
+	sed -i "s|SMB|SMB\/NFS|g" $(@D)/intl/msg_hash_*.h
 	$(TARGET_CONFIGURE_OPTS) $(MAKE) CXX="$(TARGET_CXX)" CC="$(TARGET_CC)" LD="$(TARGET_LD)" -C $(@D)/
 	$(TARGET_CONFIGURE_OPTS) $(MAKE) CXX="$(TARGET_CXX)" CC="$(TARGET_CC)" LD="$(TARGET_LD)" -C $(@D)/gfx/video_filters
 	$(TARGET_CONFIGURE_OPTS) $(MAKE) CXX="$(TARGET_CXX)" CC="$(TARGET_CC)" LD="$(TARGET_LD)" -C $(@D)/libretro-common/audio/dsp_filters
@@ -172,6 +180,9 @@ define RETROARCH_INSTALL_TARGET_CMDS
 	mkdir -p $(TARGET_DIR)/usr/share/audio_filters
 	cp $(@D)/libretro-common/audio/dsp_filters/*.so $(TARGET_DIR)/usr/share/audio_filters
 	cp $(@D)/libretro-common/audio/dsp_filters/*.dsp $(TARGET_DIR)/usr/share/audio_filters
+    
+    $(INSTALL) -D -m 0755 $(BR2_EXTERNAL_BATOCERA_PATH)/package/reglinux/retroarch/retroarch/lakka-reboot.sh $(TARGET_DIR)/usr/bin/lakka-reboot.sh
+    $(INSTALL) -D -m 0755 $(BR2_EXTERNAL_BATOCERA_PATH)/package/reglinux/retroarch/retroarch/lakka-shutdown.sh $(TARGET_DIR)/usr/bin/lakka-shutdown.sh
 endef
 
 define RETROARCH_INSTALL_STAGING_CMDS

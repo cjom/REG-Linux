@@ -11,8 +11,8 @@ case "$1" in
         /usr/bin/plymouth change-mode --reboot
         /usr/bin/plymouth --wait quit --retain-splash
         mv /usr/share/plymouth/themes/reglinux/images/header-image.png.bak /usr/share/plymouth/themes/reglinux/images/header-image.png
-        enabled="$(/usr/bin/system-settings-get system.es.atstartup)"
-        if [ "$enabled" != "0" ]; then
+#        enabled="$(/usr/bin/system-settings-get system.es.atstartup)"
+#        if [ "$enabled" != "0" ]; then
             environment="$(/usr/bin/system-settings-get-master system.es.environment)"
             if [ "$environment" = "sway" ]; then
                 # Start sway
@@ -21,7 +21,7 @@ case "$1" in
             else
                 %REGLINUX_EMULATIONSTATION_CMD% %REGLINUX_EMULATIONSTATION_POSTFIX%
             fi
-        fi
+#        fi
         ;;
 
     stop)

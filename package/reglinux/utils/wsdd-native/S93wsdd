@@ -23,8 +23,7 @@ fi
 
 # Function that starts the daemon/service
 do_start() {
-    securityenabled="$(/usr/bin/system-settings-get system.security.enabled)"
-    if [ "$securityenabled" = "1" ]; then
+    if [ "$(/usr/bin/system-settings-get system.security.enabled)" = "1" ]; then
         SMB_CONFIG_FILE="/etc/samba/smb-secure.conf"
     else
         SMB_CONFIG_FILE="/etc/samba/smb.conf"
@@ -49,7 +48,7 @@ do_start() {
         OPTS="-W ${GROUP} ${OPTS}"
     fi
 
-    start-stop-daemon --start --background --make-pidfile --pidfile "${PIDFILE}" --output "${LOG_FILE}" --exec ${DAEMON} -- ${OPTS}
+    start-stop-daemon --start --background --make-pidfile --pidfile "${PIDFILE}" --output "${LOG_FILE}" --exec "${DAEMON}" -- ${OPTS}
 }
 
 # Function that stops the daemon/service
@@ -62,14 +61,14 @@ case "$1" in
         echo "Starting $DESC: $NAME"
         do_start
         RETVAL=$?
-        echo done
+        echo "done"
         exit $RETVAL
         ;;
     stop)
         echo "Stopping $DESC: $NAME"
         do_stop
         RETVAL=$?
-        echo done
+        echo "done"
         exit $RETVAL
         ;;
     restart|force-reload)
@@ -78,7 +77,7 @@ case "$1" in
         sleep 1
         do_start
         RETVAL=$?
-        echo done
+        echo "done"
         exit $RETVAL
         ;;
     *)
@@ -86,8 +85,6 @@ case "$1" in
         exit 3
         ;;
 esac
-
-exit 0
 
 
 #MIT License

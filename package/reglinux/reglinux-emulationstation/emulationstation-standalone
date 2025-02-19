@@ -153,8 +153,30 @@ do
     # dbus launch is required for the gio/gvfs/trash:///...
     eval "$(dbus-launch --sh-syntax --exit-with-session)"
 
+    # Make sure Player 1 uses CHA1 and Player 2 uses CHA2
+    for JOYINDEX in /dev/input/js[0-9]
+    do
+      IDMODEL=$(udevadm info -q property "$JOYINDEX" | grep 'ID_MODEL=')
+      DEVPATH=$(udevadm info -q property $JOYINDEX | sed -n -e 's#^DEVPATH=\(.*\)/0003:.*$#/sys\1#p')
+      case ${IDMODEL#*=} in
+        CHA1)
+          sed -i -e "s#input_player1_joypad_index.*#input_player1_joypad_index = ${JOYINDEX: -1}#" /userdata/system/configs/retroarch/retroarch.cfg
+          sed -i -e "s#\"INPUT P1PATH\".*#\"INPUT P1PATH\" value\=\"$DEVPATH\" /\>#" /userdata/system/configs/emulationstation/es_settings.cfg
+        ;;
+        CHA2) 
+          sed -i -e "s#input_player2_joypad_index.*#input_player2_joypad_index = ${JOYINDEX: -1}#" /userdata/system/configs/retroarch/retroarch.cfg
+          sed -i -e "s#\"INPUT P2PATH\".*#\"INPUT P2PATH\" value\=\"$DEVPATH\" /\>#" /userdata/system/configs/emulationstation/es_settings.cfg
+        ;;
+      esac
+    done
+
     cd /userdata # es need a PWD
-    SDL_JOYSTICK_HIDAPI=0 %REGLINUX_EMULATIONSTATION_PREFIX% emulationstation ${GAMELAUNCHOPT} --exit-on-reboot-required %REGLINUX_EMULATIONSTATION_ARGS% ${CUSTOMESOPTIONS}
+    if [ "$(/usr/bin/system-settings-get -f /boot/system-boot.conf system.es.atstartup)" = "0" ]
+    then
+      retroarch
+    else
+      SDL_JOYSTICK_HIDAPI=0 %REGLINUX_EMULATIONSTATION_PREFIX% emulationstation ${GAMELAUNCHOPT} --exit-on-reboot-required %REGLINUX_EMULATIONSTATION_ARGS% ${CUSTOMESOPTIONS}
+    fi
 
     # es flag when rebooting (https://github.com/batocera-linux/batocera-emulationstation/blob/master/es-core/src/platform.cpp#L194)
     if test -e "/tmp/restart.please" -o -e "/tmp/shutdown.please"

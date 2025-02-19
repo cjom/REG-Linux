@@ -23,6 +23,9 @@ sed -i "s|^root:x:.*$|root:x:0:0:root:/userdata/system:/bin/bash|g" "${TARGET_DI
 rm -rf "${TARGET_DIR}/etc/dropbear" || exit 1
 ln -sf "/userdata/system/ssh" "${TARGET_DIR}/etc/dropbear" || exit 1
 
+# option to disable NFS in ES services menu
+sed -i 's@^#$@\[ \"\$(/usr/bin/system-settings-get system.nfs.enabled)\" = \"0\" \] \&\& \{ echo \"NFS services: disabled\"\; exit 0 \}@' "${TARGET_DIR}/etc/init.d/S60nfs"
+
 mkdir -p ${TARGET_DIR}/etc/emulationstation || exit 1
 ln -sf "/usr/share/emulationstation/es_systems.cfg" "${TARGET_DIR}/etc/emulationstation/es_systems.cfg" || exit 1
 ln -sf "/usr/share/emulationstation/themes"         "${TARGET_DIR}/etc/emulationstation/themes"         || exit 1
@@ -148,5 +151,13 @@ if ! [[ -z "${SYSTEM_GETTY_PORT}" ]]; then
         ${TARGET_DIR}/etc/inittab
 fi
 
-# make sure /etc/init.d scripts are executable
+# make sure /etc/init.d scripts, services and cores are executable
 chmod 755 "${TARGET_DIR}/etc/init.d"/S*
+chmod 755 "${TARGET_DIR}/usr/share/reglinux/services"/*
+chmod 755 "${TARGET_DIR}/usr/lib/libretro"/*.so
+
+# Choko Group customization
+if [ "$BATOCERA_TARGET" = "CHA" ]; then
+    # rm -f "${TARGET_DIR}/etc/init.d/S31sixad" || true
+    chmod 755 "${TARGET_DIR}/usr/share/reglinux/datainit/roms/choko"/*.sh || true
+fi

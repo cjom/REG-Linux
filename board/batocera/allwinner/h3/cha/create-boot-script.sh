@@ -25,6 +25,14 @@ cp "${BINARIES_DIR}/firmware"           "${REGLINUX_BINARIES_DIR}/boot/boot/firm
 cp "${BINARIES_DIR}/rescue"             "${REGLINUX_BINARIES_DIR}/boot/boot/rescue.update"   || exit 1
 
 cp "${BINARIES_DIR}/sun8i-h3-libretech-all-h3-cc.dtb" "${REGLINUX_BINARIES_DIR}/boot/boot/capcom-home-arcade.dtb"     || exit 1
-cp "${BOARD_DIR}/boot/extlinux.conf"          "${REGLINUX_BINARIES_DIR}/boot/extlinux/" || exit 1
+cp -r "${BOARD_DIR}/boot" "${REGLINUX_BINARIES_DIR}/" || exit 1
+
+if ! test -e "${BUILD_DIR}/cha_disk_partition/cha_disk.ext4"
+then
+	mkdir -p "${BUILD_DIR}/cha_disk_partition" || exit 1
+	curl -L https://github.com/ChokoGroup/batocera-CHA/releases/download/cha_disk/cha_disk.zip -o "${BUILD_DIR}/cha_disk_partition/cha_disk.zip" || exit 1
+	unzip "${BUILD_DIR}/cha_disk_partition/cha_disk.zip" -d "${BUILD_DIR}/cha_disk_partition" || exit 1
+	rm -f "${BUILD_DIR}/cha_disk_partition/cha_disk.zip"
+fi
 
 exit 0

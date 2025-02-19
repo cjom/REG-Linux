@@ -886,8 +886,8 @@ fbneo:
   platform:   arcade
   emulators:
     libretro:
-      fbalpha:  { requireAnyOf: [BR2_PACKAGE_LIBRETRO_FBALPHA]  }
       fbneo:    { requireAnyOf: [BR2_PACKAGE_LIBRETRO_FBNEO]    }
+      fbalpha:  { requireAnyOf: [BR2_PACKAGE_LIBRETRO_FBALPHA]  }
   comment_en: |
     ROMs must come from the FBNeo romset version 1.0.0.0
 
@@ -966,8 +966,8 @@ neogeo:
   platform:   neogeo, arcade
   emulators:
     libretro:
-      fbalpha:      { requireAnyOf: [BR2_PACKAGE_LIBRETRO_FBALPHA]       , incompatible_extensions: [ neo ]     }
       fbneo:        { requireAnyOf: [BR2_PACKAGE_LIBRETRO_FBNEO]         , incompatible_extensions: [ neo ]     }
+      fbalpha:      { requireAnyOf: [BR2_PACKAGE_LIBRETRO_FBALPHA]       , incompatible_extensions: [ neo ]     }
       geolith:      { requireAnyOf: [BR2_PACKAGE_LIBRETRO_GEOLITH]       , incompatible_extensions: [ 7z, zip ] }
       imame4all:    { requireAnyOf: [BR2_PACKAGE_LIBRETRO_IMAME]         , incompatible_extensions: [ neo ]     }
       mame078plus:  { requireAnyOf: [BR2_PACKAGE_LIBRETRO_MAME2003_PLUS] , incompatible_extensions: [ neo ]     }

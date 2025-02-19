@@ -1,0 +1,14 @@
+#!/bin/bash
+case "$1" in
+  start|stop|restart|reload|status)
+    ;;
+  enabled)
+      /usr/bin/system-settings-set system.samba.enabled 1
+    ;;
+  disabled)
+      /usr/bin/system-settings-set system.samba.enabled 0
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|reload|enabled|disabled|status}"
+    exit 1
+esac
