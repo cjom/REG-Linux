@@ -22,8 +22,13 @@ jobs:
   build:
     name: Build REG-Linux for CHA
     runs-on: ubuntu-latest
-    container: reglinux/reglinux-build:latest
     steps:
+      - name: apps install
+        id: apps_install
+        shell: bash
+        run: |
+          apt-get update
+          apt-get install --assume-yes build-essential git zip default-jre autoconf automake mtools u-boot-tools flex wget cpio dosfstools libtool gcc-multilib g++-multilib python3-pip curl
       - name: compile
         id: compile_step
         shell: bash
@@ -42,8 +47,7 @@ jobs:
             mkdir -p \$(BUILD_DIR)\
             mkdir -p \$(DL_DIR)\
             |' buildroot/package/pkg-download.mk
-          echo "*** cat buildroot/package/pkg-download.mk ***"
-          cat buildroot/package/pkg-download.mk
+          make vars
           make cha-build
           # Debug
           echo "Looking for *.img.gz"
