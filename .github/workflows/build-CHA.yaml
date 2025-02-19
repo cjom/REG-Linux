@@ -27,8 +27,8 @@ jobs:
         id: apps_install
         shell: bash
         run: |
-          apt-get update
-          apt-get install --assume-yes build-essential git zip default-jre autoconf automake mtools u-boot-tools flex wget cpio dosfstools libtool gcc-multilib g++-multilib python3-pip curl
+          sudo apt-get update
+          sudo apt-get install --assume-yes build-essential git zip default-jre autoconf automake mtools u-boot-tools flex wget cpio dosfstools libtool gcc-multilib g++-multilib python3-pip curl
       - name: compile
         id: compile_step
         shell: bash
