@@ -29,9 +29,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --assume-yes build-essential git libncurses5-dev libssl-dev mercurial texinfo zip default-jre imagemagick subversion autoconf automake bison scons libglib2.0-dev bc mtools u-boot-tools flex wget cpio dosfstools libtool gcc-multilib g++-multilib python3-pip curl
-          sudo dpkg --add-architecture armhf
-          sudo apt-get update
-          sudo apt-get install libc6:armhf libncurses5:armhf libstdc++6:armhf
       - name: compile
         id: compile_step
         shell: bash
