@@ -28,7 +28,10 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update
-          sudo apt-get install --assume-yes build-essential git zip default-jre autoconf automake mtools u-boot-tools flex wget cpio dosfstools libtool gcc-multilib g++-multilib python3-pip curl
+          sudo apt-get install --assume-yes build-essential git libncurses5-dev libssl-dev mercurial texinfo zip default-jre imagemagick subversion autoconf automake bison scons libglib2.0-dev bc mtools u-boot-tools flex wget cpio dosfstools libtool gcc-multilib g++-multilib python3-pip curl
+          sudo dpkg --add-architecture armhf
+          sudo apt-get update
+          sudo apt-get install libc6:armhf libncurses5:armhf libstdc++6:armhf
       - name: compile
         id: compile_step
         shell: bash
@@ -47,9 +50,9 @@ jobs:
             mkdir -p \$(BUILD_DIR)\
             mkdir -p \$(DL_DIR)\
             |' buildroot/package/pkg-download.mk
-          configs/createDefconfig.sh configs/reglinux-cha
+          bash -x ${PWD}/configs/createDefconfig.sh ${PWD}/configs/reglinux-cha
           mkdir -p output/cha
-          make O=${PWD}/output/cha BR2_EXTERNAL=${PWD} -C ${PWD}/buildroot ${PWD}/configs/reglinux-cha_defconfig
+          make O=${PWD}/output/cha BR2_EXTERNAL=${PWD}/output/cha/build -C ${PWD}/output/cha/buildroot ${PWD}/configs/reglinux-cha_defconfig
           cd output/cha
           make
           # Debug
