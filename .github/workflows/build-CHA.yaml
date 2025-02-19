@@ -30,7 +30,7 @@ jobs:
         run: |
           cd ..
           rm -rf ./REG-Linux
-          git clone --branch main "https://${GITHUB_REPOSITORY_OWNER}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" ./REG-Linux
+          git clone --branch REG-Linux-CHA "https://${GITHUB_REPOSITORY_OWNER}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" ./REG-Linux
           cd REG-Linux
           git submodule init
           git submodule update
