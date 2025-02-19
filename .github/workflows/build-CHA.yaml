@@ -47,7 +47,7 @@ jobs:
             mkdir -p \$(BUILD_DIR)\
             mkdir -p \$(DL_DIR)\
             |' buildroot/package/pkg-download.mk
-          make O=$PWD/output/cha BR2_EXTERNAL=$PWD -C $PWD/buildroot reglinux-cha_defconfig
+          configs/createDefconfig.sh configs/reglinux-cha
           cd output/cha
           make
           # Debug
