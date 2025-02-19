@@ -47,8 +47,9 @@ jobs:
             mkdir -p \$(BUILD_DIR)\
             mkdir -p \$(DL_DIR)\
             |' buildroot/package/pkg-download.mk
-          make vars
-          make cha-build
+          make O=$PWD/output/cha BR2_EXTERNAL=$PWD -C $PWD/buildroot reglinux-cha_defconfig
+          cd output/cha
+          make
           # Debug
           echo "Looking for *.img.gz"
           find "${GITHUB_WORKSPACE}"/ -type f -iname *.img.gz -print
