@@ -48,11 +48,13 @@ jobs:
             mkdir -p \$(DL_DIR)\
             |' buildroot/package/pkg-download.mk
           configs/createDefconfig.sh configs/reglinux-cha
+          mkdir -p output/cha
+          make O=${PWD}/output/cha BR2_EXTERNAL=${PWD} -C ${PWD}/buildroot ${PWD}/configs/reglinux-cha_defconfig
           cd output/cha
           make
           # Debug
           echo "Looking for *.img.gz"
-          find "${GITHUB_WORKSPACE}"/ -type f -iname *.img.gz -print
+          find "${GITHUB_WORKSPACE}"/output/cha -type f -iname *.img.gz -print
       - name: upload_artifacts
         id: upload_artifacts
         uses: actions/upload-artifact@v4
