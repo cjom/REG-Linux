@@ -51,7 +51,8 @@ jobs:
           mkdir -p output/cha/buildroot output/cha/build
           make O=${PWD}/output/cha BR2_EXTERNAL=${PWD} -C ${PWD}/buildroot ${PWD}/configs/reglinux-cha_defconfig
           cd output/cha
-          make cha
+          ls -lAR
+          make
           # Debug
           echo "Looking for *.img.gz"
           find "${GITHUB_WORKSPACE}"/output/cha -type f -iname *.img.gz -print
