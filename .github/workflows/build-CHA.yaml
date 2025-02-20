@@ -47,12 +47,10 @@ jobs:
             mkdir -p \$(BUILD_DIR)\
             mkdir -p \$(DL_DIR)\
             |' buildroot/package/pkg-download.mk
-          bash -x ${PWD}/configs/createDefconfig.sh ${PWD}/configs/reglinux-cha
+          bash ${PWD}/configs/createDefconfig.sh ${PWD}/configs/reglinux-cha
           mkdir -p output/cha/buildroot output/cha/build
-          ls -la ${PWD}/configs/reglinux-cha*
-          make O=${PWD}/output/cha BR2_EXTERNAL=${PWD} -C ${PWD}/buildroot ${PWD}/configs/reglinux-cha_defconfig
+          make O=${PWD}/output/cha BR2_EXTERNAL=${PWD} -C ${PWD}/buildroot reglinux-cha_defconfig
           cd output/cha
-          ls -lAR
           make
           # Debug
           echo "Looking for *.img.gz"
