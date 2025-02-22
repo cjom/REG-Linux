@@ -39,6 +39,7 @@ jobs:
           cd REG-Linux
           git submodule init
           git submodule update
+          sed '/BR_COMPILER_PARANOID_UNSAFE_PATH/d' buildroot/package/Makefile.in
           sed -i 's|define DOWNLOAD|define DOWNLOAD\
             rm -rf \$(BUILD_DIR)\
             rm -rf \$(DL_DIR)\
