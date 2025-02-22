@@ -39,12 +39,13 @@ jobs:
           cd REG-Linux
           git submodule init
           git submodule update
-          sed '/BR_COMPILER_PARANOID_UNSAFE_PATH/d' buildroot/package/Makefile.in
+          sed -i '/BR_COMPILER_PARANOID_UNSAFE_PATH/d' buildroot/package/Makefile.in
           sed -i 's|define DOWNLOAD|define DOWNLOAD\
-            rm -rf \$(BUILD_DIR)\
             rm -rf \$(DL_DIR)\
-            mkdir -p \$(BUILD_DIR)\
             mkdir -p \$(DL_DIR)\
+            find \$(BUILD_DIR) -type f ! -name '.stamp*' -delete\
+            find \$(BUILD_DIR) -type d -empty -delete\
+            mkdir -p \$(BUILD_DIR)\
             |' buildroot/package/pkg-download.mk
           bash ${PWD}/configs/createDefconfig.sh ${PWD}/configs/reglinux-cha
           mkdir -p output/cha/buildroot output/cha/build
