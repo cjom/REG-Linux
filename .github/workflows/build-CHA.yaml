@@ -39,6 +39,9 @@ jobs:
           cd REG-Linux
           git submodule init
           git submodule update
+          cat buildroot/package/Makefile.in
+          sed -i 's/BR_COMPILER_PARANOID_UNSAFE_PATH/OPTION_NO_POISON_SYSTEM_DIRECTORIES/' buildroot/package/Makefile.in
+          cat buildroot/package/Makefile.in
           sed -i 's|define DOWNLOAD|define DOWNLOAD\
             rm -rf \$(DL_DIR)\
             mkdir -p \$(DL_DIR)\
