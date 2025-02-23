@@ -28,7 +28,10 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update
-          sudo apt-get install --assume-yes build-essential git libncurses5-dev libssl-dev mercurial texinfo zip default-jre imagemagick subversion autoconf automake bison scons libglib2.0-dev bc mtools u-boot-tools flex wget cpio dosfstools libtool gcc-multilib g++-multilib curl
+          sudo apt-get install -y -o APT::Immediate-Configure=0 build-essential cmake git libncurses6 libncurses-dev libssl-dev mercurial texinfo zip default-jre imagemagick subversion autoconf automake bison scons libglib2.0-dev bc gh mtools u-boot-tools flex wget cpio dosfstools libtool rsync device-tree-compiler gettext locales graphviz python3 python3-numpy python3-matplotlib gcc-multilib g++-multilib libgnutls28-dev
+          sudo apt-get autoremove
+          sudo apt-get clean
+          rm -rf /var/lib/apt/lists/*
       - name: compile
         id: compile_step
         shell: bash
