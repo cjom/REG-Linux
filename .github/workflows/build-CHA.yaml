@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update
-          sudo apt-get install --assume-yes build-essential git libncurses5-dev libssl-dev mercurial texinfo zip default-jre imagemagick subversion autoconf automake bison scons libglib2.0-dev bc mtools u-boot-tools flex wget cpio dosfstools libtool gcc-multilib g++-multilib python3-pip curl
+          sudo apt-get install --assume-yes build-essential git libncurses5-dev libssl-dev mercurial texinfo zip default-jre imagemagick subversion autoconf automake bison scons libglib2.0-dev bc mtools u-boot-tools flex wget cpio dosfstools libtool gcc-multilib g++-multilib curl
       - name: compile
         id: compile_step
         shell: bash
@@ -39,9 +39,6 @@ jobs:
           cd REG-Linux
           git submodule init
           git submodule update
-          cat buildroot/package/Makefile.in
-          sed -i 's/BR_COMPILER_PARANOID_UNSAFE_PATH/OPTION_NO_POISON_SYSTEM_DIRECTORIES/' buildroot/package/Makefile.in
-          cat buildroot/package/Makefile.in
           sed -i 's|define DOWNLOAD|define DOWNLOAD\
             rm -rf \$(DL_DIR)\
             mkdir -p \$(DL_DIR)\
