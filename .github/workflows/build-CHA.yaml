@@ -42,6 +42,7 @@ jobs:
           cd REG-Linux
           git submodule init
           git submodule update
+          sed -i 's|eeprog|eeprog --sysroot=\$(STAGING_DIR)|' buildroot/package/i2c-tools/i2c-tools.mk
           sed -i 's|define DOWNLOAD|define DOWNLOAD\
             rm -rf \$(DL_DIR)\
             mkdir -p \$(DL_DIR)\
