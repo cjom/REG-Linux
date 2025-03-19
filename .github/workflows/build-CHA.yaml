@@ -61,7 +61,10 @@ jobs:
           compression-level: 0
           overwrite: true
           name: reglinux-cha
-          path: ./*.img.gz
+          path: |
+            reglinux-*.img.gz
+            system.version
+            *.md5
       - name: upload_build_part_1
         if: ${{ ! cancelled() }}
         id: upload_build_part_1
@@ -84,15 +87,3 @@ jobs:
           include-hidden-files: true
           name: reglinux-output-cha-host
           path: ./output/cha/host
-      - name: upload_img
-        if: ${{ ! cancelled() }}
-        id: upload_img
-        uses: actions/upload-artifact@v4
-        with:
-          compression-level: 0
-          overwrite: true
-          name: reglinux-cha.img
-          path: |
-            reglinux-*.img.gz
-            system.version
-            *.md5
