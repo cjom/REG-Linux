@@ -60,7 +60,7 @@ index 9eee5c7123..727963a714 100644
 +
 +# batocera
 +define SDL2_FIX_WAYLAND_SCANNER_PATH
-+	sed -i "s+/usr/bin/wayland-scanner+$(HOST_DIR)/usr/bin/wayland-scanner+g" $(@D)/Makefile
++	find $(HOST_DIR) -type f -name 'wayland-scanner' -exec sed -i "s+/usr/bin/wayland-scanner+{}+g" $(@D)/Makefile \;
 +endef
 +
 +define SDL2_FIX_CONFIGURE_PATHS

@@ -74,9 +74,9 @@ define SDL2_FIX_SDL2_CONFIG_CMAKE
 		$(STAGING_DIR)/usr/lib/cmake/SDL2/sdl2-config.cmake
 endef
 
-# batocera
+# reglinux
 define SDL2_FIX_WAYLAND_SCANNER_PATH
-	sed -i "s+/usr/bin/wayland-scanner+$(HOST_DIR)/usr/bin/wayland-scanner+g" $(@D)/Makefile
+	find $(HOST_DIR) -type f -name 'wayland-scanner' -exec sed -i "s+/usr/bin/wayland-scanner+{}+g" $(@D)/Makefile \;
 endef
 
 define SDL2_FIX_CONFIGURE_PATHS
