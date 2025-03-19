@@ -35,7 +35,6 @@ jobs:
           git submodule init
           git submodule update
           rm -rf .git .github
-          CUSTOM_DIR=${PWD}/custom BUILDROOT_DIR=${PWD}/buildroot bash ${PWD}/scripts/linux/mergeToBR.sh
           # After each package is compiled and installed, delete build folder
           sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\tfind $(BUILD_DIR) -type f -not -path "*/buildroot-config/*"  -not \\( -name ".stamp*" -or -name ".br*" -or -name ".config" \\) -delete \
           	find $(BUILD_DIR) -type d -mindepth 1 -empty -delete \

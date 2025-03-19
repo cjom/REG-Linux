@@ -11,7 +11,6 @@ MAKE_LLEVEL    ?= $(shell echo $$(($(NPROC) * 1)))
 BATCH_MODE     ?=
 PARALLEL_BUILD ?=
 RELEASE_BUILD  ?=
-DOCKER         ?= docker
 
 -include $(LOCAL_MK)
 
@@ -22,18 +21,9 @@ endif
 MAKE_OPTS  += -j$(MAKE_JLEVEL)
 MAKE_OPTS  += -l$(MAKE_LLEVEL)
 
-ifndef BATCH_MODE
-	DOCKER_OPTS += -i
-endif
-
-DOCKER_REPO := reglinux
-IMAGE_NAME  := reglinux-build
-
 TARGETS := $(sort $(shell find $(PROJECT_DIR)/configs/ -name 'r*' | sed -n 's/.*\/reglinux-\(.*\).board/\1/p'))
 UID  := $(shell id -u)
 GID  := $(shell id -g)
-
-$(if $(shell which $(DOCKER) 2>/dev/null),, $(error "$(DOCKER) not found!"))
 
 UC = $(shell echo '$1' | tr '[:lower:]' '[:upper:]')
 
@@ -48,28 +38,8 @@ vars:
 	@echo "Make options:       $(MAKE_OPTS)"
 
 
-build-docker-image:
-	$(DOCKER) build . -t $(DOCKER_REPO)/$(IMAGE_NAME)
-	@touch .ba-docker-image-available
-
-.ba-docker-image-available:
-	@$(DOCKER) pull $(DOCKER_REPO)/$(IMAGE_NAME)
-	@touch .ba-docker-image-available
-
-reglinux-docker-image: merge .ba-docker-image-available
-
-update-docker-image:
-	-@rm .ba-docker-image-available > /dev/null
-	@$(MAKE) reglinux-docker-image
-
-publish-docker-image:
-	@$(DOCKER) push $(DOCKER_REPO)/$(IMAGE_NAME):latest
-
 output-dir-%: %-supported
 	@mkdir -p $(OUTPUT_DIR)/$*
-
-ccache-dir:
-	@mkdir -p $(CCACHE_DIR)
 
 dl-dir:
 	@mkdir -p $(DL_DIR)
@@ -77,19 +47,10 @@ dl-dir:
 %-supported:
 	$(if $(findstring $*, $(TARGETS)),,$(error "$* not supported!"))
 
-%-clean: reglinux-docker-image output-dir-%
-	@$(DOCKER) run -t --init --rm \
-		-v $(PROJECT_DIR):/build \
-		-v $(DL_DIR):/build/buildroot/dl \
-		-v $(OUTPUT_DIR)/$*:/$* \
-		-v /etc/passwd:/etc/passwd:ro \
-		-v /etc/group:/etc/group:ro \
-		-u $(UID):$(GID) \
-		$(DOCKER_OPTS) \
-		$(DOCKER_REPO)/$(IMAGE_NAME) \
-		make O=/$* BR2_EXTERNAL=/build -C /build/buildroot clean
+%-clean: output-dir-%
+	@make O=$(OUTPUT_DIR)/$* BR2_EXTERNAL=$(PROJECT_DIR) -C $(PROJECT_DIR)/buildroot clean
 
-%-config: output-dir-%
+%-config: merge output-dir-%
 	@$(PROJECT_DIR)/configs/createDefconfig.sh $(PROJECT_DIR)/configs/reglinux-$*
 	@for opt in $(EXTRA_OPTS); do \
 		echo $$opt >> $(PROJECT_DIR)/configs/reglinux-$*_defconfig ; \
@@ -99,111 +60,27 @@ dl-dir:
 %-build: %-config dl-dir
 	@make $(MAKE_OPTS) O=$(OUTPUT_DIR)/$* BR2_EXTERNAL=$(PROJECT_DIR) -C $(PROJECT_DIR)/buildroot $(CMD)
 
-%-source: reglinux-docker-image %-config ccache-dir dl-dir
-	@$(DOCKER) run -t --init --rm \
-		-v $(PROJECT_DIR):/build \
-		-v $(DL_DIR):/build/buildroot/dl \
-		-v $(OUTPUT_DIR)/$*:/$* \
-		-v $(CCACHE_DIR):$(HOME)/.buildroot-ccache \
-		-u $(UID):$(GID) \
-		-v /etc/passwd:/etc/passwd:ro \
-		-v /etc/group:/etc/group:ro \
-		$(DOCKER_OPTS) \
-		$(DOCKER_REPO)/$(IMAGE_NAME) \
-		make $(MAKE_OPTS) O=/$* BR2_EXTERNAL=/build -C /build/buildroot source
+%-source: %-config dl-dir
+	@make $(MAKE_OPTS) O=$(OUTPUT_DIR)/$* BR2_EXTERNAL=$(PROJECT_DIR) -C $(PROJECT_DIR)/buildroot source
 
-%-show-build-order: reglinux-docker-image %-config ccache-dir dl-dir
-	@$(DOCKER) run -t --init --rm \
-		-v $(PROJECT_DIR):/build \
-		-v $(DL_DIR):/build/buildroot/dl \
-		-v $(OUTPUT_DIR)/$*:/$* \
-		-v $(CCACHE_DIR):$(HOME)/.buildroot-ccache \
-		-u $(UID):$(GID) \
-		-v /etc/passwd:/etc/passwd:ro \
-		-v /etc/group:/etc/group:ro \
-		$(DOCKER_OPTS) \
-		$(DOCKER_REPO)/$(IMAGE_NAME) \
-		make $(MAKE_OPTS) O=/$* BR2_EXTERNAL=/build -C /build/buildroot show-build-order
+%-show-build-order: %-config dl-dir
+	@make $(MAKE_OPTS) O=$(OUTPUT_DIR)/$* BR2_EXTERNAL=$(PROJECT_DIR) -C $(PROJECT_DIR)/buildroot show-build-order
 
-%-kernel: reglinux-docker-image %-config ccache-dir dl-dir
-	@$(DOCKER) run -t --init --rm \
-		-v $(PROJECT_DIR):/build \
-		-v $(DL_DIR):/build/buildroot/dl \
-		-v $(OUTPUT_DIR)/$*:/$* \
-		-v $(CCACHE_DIR):$(HOME)/.buildroot-ccache \
-		-u $(UID):$(GID) \
-		-v /etc/passwd:/etc/passwd:ro \
-		-v /etc/group:/etc/group:ro \
-		$(DOCKER_OPTS) \
-		$(DOCKER_REPO)/$(IMAGE_NAME) \
-		make $(MAKE_OPTS) O=/$* BR2_EXTERNAL=/build -C /build/buildroot linux-menuconfig
+%-kernel: %-config dl-dir
+	@make $(MAKE_OPTS) O=$(OUTPUT_DIR)/$* BR2_EXTERNAL=$(PROJECT_DIR) -C $(PROJECT_DIR)/buildroot linux-menuconfig
 
-%-graph-depends: reglinux-docker-image %-config ccache-dir dl-dir
-	@$(DOCKER) run -it --init --rm \
-		-v $(PROJECT_DIR):/build \
-		-v $(DL_DIR):/build/buildroot/dl \
-		-v $(OUTPUT_DIR)/$*:/$* \
-		-v $(CCACHE_DIR):$(HOME)/.buildroot-ccache \
-		-u $(UID):$(GID) \
-		-v /etc/passwd:/etc/passwd:ro \
-		-v /etc/group:/etc/group:ro \
-		$(DOCKER_OPTS) \
-		$(DOCKER_REPO)/$(IMAGE_NAME) \
-		make O=/$* BR2_EXTERNAL=/build BR2_GRAPH_OUT=svg -C /build/buildroot graph-depends
+%-graph-depends: %-config dl-dir
+	@make O=/$* BR2_EXTERNAL=/build BR2_GRAPH_OUT=svg -C /build/buildroot graph-depends
 
-%-graph-build: reglinux-docker-image %-config ccache-dir dl-dir
-	@$(DOCKER) run -it --init --rm \
-		-v $(PROJECT_DIR):/build \
-		-v $(DL_DIR):/build/buildroot/dl \
-		-v $(OUTPUT_DIR)/$*:/$* \
-		-v $(CCACHE_DIR):$(HOME)/.buildroot-ccache \
-		-u $(UID):$(GID) \
-		-v /etc/passwd:/etc/passwd:ro \
-		-v /etc/group:/etc/group:ro \
-		$(DOCKER_OPTS) \
-		$(DOCKER_REPO)/$(IMAGE_NAME) \
-		make O=/$* BR2_EXTERNAL=/build BR2_GRAPH_OUT=svg -C /build/buildroot graph-build
+%-graph-build: %-config dl-dir
+	@make O=/$* BR2_EXTERNAL=/build BR2_GRAPH_OUT=svg -C /build/buildroot graph-build
 
-%-graph-size: reglinux-docker-image %-config ccache-dir dl-dir
-	@$(DOCKER) run -it --init --rm \
-		-v $(PROJECT_DIR):/build \
-		-v $(DL_DIR):/build/buildroot/dl \
-		-v $(OUTPUT_DIR)/$*:/$* \
-		-v $(CCACHE_DIR):$(HOME)/.buildroot-ccache \
-		-u $(UID):$(GID) \
-		-v /etc/passwd:/etc/passwd:ro \
-		-v /etc/group:/etc/group:ro \
-		$(DOCKER_OPTS) \
-		$(DOCKER_REPO)/$(IMAGE_NAME) \
-		make O=/$* BR2_EXTERNAL=/build BR2_GRAPH_OUT=svg -C /build/buildroot graph-size
+%-graph-size: %-config dl-dir
+	@make O=/$* BR2_EXTERNAL=/build BR2_GRAPH_OUT=svg -C /build/buildroot graph-size
 
-%-shell: reglinux-docker-image output-dir-%
+%-shell: output-dir-%
 	$(if $(BATCH_MODE),$(if $(CMD),,$(error "not suppoorted in BATCH_MODE if CMD not specified!")),)
-	@$(DOCKER) run -t --init --rm \
-		-v $(PROJECT_DIR):/build \
-		-v $(DL_DIR):/build/buildroot/dl \
-		-v $(OUTPUT_DIR)/$*:/$* \
-		-w /$* \
-		-v $(CCACHE_DIR):$(HOME)/.buildroot-ccache \
-		-u $(UID):$(GID) \
-		$(DOCKER_OPTS) \
-		-v /etc/passwd:/etc/passwd:ro \
-		-v /etc/group:/etc/group:ro \
-		$(DOCKER_REPO)/$(IMAGE_NAME) \
-		$(CMD)
-
-%-ccache-stats: reglinux-docker-image %-config ccache-dir dl-dir
-	@$(DOCKER) run -t --init --rm \
-		-v $(PROJECT_DIR):/build \
-		-v $(DL_DIR):/build/buildroot/dl \
-		-v $(OUTPUT_DIR)/$*:/$* \
-		-v $(CCACHE_DIR):$(HOME)/.buildroot-ccache \
-		-u $(UID):$(GID) \
-		-v /etc/passwd:/etc/passwd:ro \
-		-v /etc/group:/etc/group:ro \
-		$(DOCKER_OPTS) \
-		$(DOCKER_REPO)/$(IMAGE_NAME) \
-		make $(MAKE_OPTS) O=/$* BR2_EXTERNAL=/build -C /build/buildroot ccache-stats
+	@$(CMD)
 
 %-cleanbuild: %-clean %-build
 	@echo
