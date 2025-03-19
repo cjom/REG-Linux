@@ -55,7 +55,7 @@ jobs:
             unzip -q ./reglinux-output-cha.zip && rm ./reglinux-output-cha.zip
             cd build
             # rebuild linux and busybox packages to avoid error (No rule to make target 'oldconfig')
-            # find ./ -type d -mindepth 1 -maxdepth 1 \( -iname 'linux-6*' -or -iname 'busybox-1*' \) -exec rm -rfv {} \+
+            find ./ -type d -mindepth 1 -maxdepth 1 \( -iname 'linux-6*' -or -iname 'busybox-1*' \) -exec rm -rfv {} \+
             # delete folder not compiled and installed (because some error, usually)
             for d in */; do
               if [ "$d" != "buildroot-config/" ] && [ ! -f $d/.stamp_installed ]; then rm -rfv $d ; fi
