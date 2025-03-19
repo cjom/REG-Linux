@@ -1,0 +1,75 @@
+--- a/menu/cbs/menu_cbs_sublabel.c
++++ b/menu/cbs/menu_cbs_sublabel.c
+@@ -5220,6 +5220,7 @@
+          case MENU_ENUM_LABEL_SAMBA_ENABLE:
+             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_samba_enable);
+             break;
++#ifndef HAVE_CHOKOGROUP
+          case MENU_ENUM_LABEL_BLUETOOTH_ENABLE:
+ #ifdef HAVE_BLUETOOTH
+             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_bluetooth_enable);
+@@ -5228,6 +5229,7 @@
+          case MENU_ENUM_LABEL_LOCALAP_ENABLE:
+             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_localap_enable);
+             break;
++#endif
+          case MENU_ENUM_LABEL_TIMEZONE:
+             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_timezone);
+             break;
+--- a/menu/menu_setting.c
++++ b/menu/menu_setting.c
+@@ -9165,8 +9165,8 @@
+ static void systemd_service_toggle(const char *path, char *unit, bool enable)
+ {
+    pid_t pid    = fork();
+-   char* args[] = {(char*)"systemctl",
+-                   enable ? (char*)"start" : (char*)"stop",
++   char* args[] = {(char*)"/usr/bin/system-services",
++                   enable ? (char*)"enable" : (char*)"disable",
+                    unit,
+                    NULL};
+ 
+@@ -9224,13 +9224,13 @@
+ 
+ static void ssh_enable_toggle_change_handler(rarch_setting_t *setting)
+ {
+-   systemd_service_toggle(LAKKA_SSH_PATH, (char*)"sshd.service",
++   systemd_service_toggle(LAKKA_SSH_PATH, (char*)"enable_SSH",
+          *setting->value.target.boolean);
+ }
+ 
+ static void samba_enable_toggle_change_handler(rarch_setting_t *setting)
+ {
+-   systemd_service_toggle(LAKKA_SAMBA_PATH, (char*)"smbd.service",
++   systemd_service_toggle(LAKKA_SAMBA_PATH, (char*)"enable_SAMBA",
+          *setting->value.target.boolean);
+ }
+ 
+@@ -22764,6 +22764,7 @@
+                   SD_FLAG_NONE);
+             (*list)[list_info->index - 1].change_handler = samba_enable_toggle_change_handler;
+ 
++#ifdef HAVE_BLUETOOTH
+             CONFIG_BOOL(
+                   list, list_info,
+                   &settings->bools.bluetooth_enable,
+@@ -22779,6 +22780,7 @@
+                   general_read_handler,
+                   SD_FLAG_NONE);
+             (*list)[list_info->index - 1].change_handler = bluetooth_enable_toggle_change_handler;
++#endif
+ 
+ #ifdef HAVE_WIFI
+             CONFIG_BOOL(
+             --- a/Makefile.common
++++ b/Makefile.common
+@@ -2518,4 +2518,8 @@
+          gfx/drivers/oga_gfx.o
+ endif
+ 
++ifeq ($(HAVE_CHOKOGROUP), 1)
++   DEFINES += -DHAVE_CHOKOGROUP
++endif
++
+ ##################################
+

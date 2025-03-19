@@ -1,0 +1,30 @@
+#!/bin/bash
+case "$1" in
+  start)
+    SHAREPART="$(/usr/bin/system-part share_internal)"
+    # Look for a swap partition
+    SWAPFILE=$(blkid -c /dev/null -l -o device -t TYPE=swap)
+    # If no swap partition, check if we are in SD card and create a swapfile there
+    if [ -z "$SWAPFILE" ] && [ "$(ls -1 /dev/mmcblk? | wc -l)" = "2" ] && [ "$SHAREPART" = "$(/usr/bin/system-part share)" ]; then
+      SWAPFILE="/userdata/system/swapfile"
+      if [ ! -f "$SWAPFILE" ]; then
+        fallocate -l 512M $SWAPFILE
+        chmod 600 $SWAPFILE
+        mkswap $SWAPFILE
+      fi
+    fi
+    [ -n "$SWAPFILE" ] && swapon -f "$SWAPFILE"
+    ;;
+  stop)
+    swapoff -a
+    ;;
+  restart|reload)
+    "$0" stop
+    "$0" start
+    ;;
+  enabled|disabled|status)
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|reload|enabled|disabled|status}"
+    exit 1
+esac

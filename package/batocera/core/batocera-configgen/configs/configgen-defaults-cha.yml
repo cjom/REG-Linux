@@ -14,9 +14,15 @@ megadrive:
 snes:
   emulator: libretro
   core:     snes9x
+fbalpha2012:
+  emulator: libretro
+  core:     fbalpha2012
 fbneo:
   options:
     frameskip: auto
+mame2010:
+  emulator: libretro
+  core:     mame0139
 atomiswave:
   emulator: libretro
   core:     flycast

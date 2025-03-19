@@ -190,7 +190,7 @@ if [ "$command" = "canupdate" ]; then
     latestrelease=$(curl --silent "https://api.github.com/repos/REG-Linux/REG-Linux/releases/latest" | jq -r '.tag_name')
     if [ "${updatetype}" = "beta" ]; then
         # Get latest prerelease beta build on GitHub
-        latestbeta=$(curl --silent https://api.github.com/repos/REG-Linux/REG-Linux/releases | jq -r 'map(select(.prerelease)) | first | .tag_name')
+        latestbeta=$(curl --silent https://api.github.com/repos/ChokoGroup/REG-Linux/releases | jq -r 'map(select(.prerelease)) | first | .tag_name')
         # "24.10-beta-1" > "24.08.3" and user can upgrade with beta, but "24.08-beta-1" will not upgrade "24.08.0"
         [ -n "$latestbeta" ] && { [ -z "$latestrelease" ] || [[ "${latestbeta:0:5}" > "${latestrelease:0:5}" ]]; } && latestrelease="$latestbeta"
     fi
@@ -221,7 +221,7 @@ if [ "$command" = "canupdate" ]; then
     esac
 
     # New releases are available, check if this board is lucky
-    url="https://github.com/REG-Linux/REG-Linux/releases/download/${latestrelease}/boot-${board}.tar.zst"
+    url="https://github.com/ChokoGroup/REG-Linux/releases/download/${latestrelease}/boot-${board}.tar.zst"
     if curl --output /dev/null -sfIL "${url}"
     then
         # New release is available

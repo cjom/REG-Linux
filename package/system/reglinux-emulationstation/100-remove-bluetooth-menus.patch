@@ -1,0 +1,51 @@
+--- a/es-app/src/guis/GuiControllersSettings.cpp
++++ b/es-app/src/guis/GuiControllersSettings.cpp
+@@ -4,9 +4,9 @@
+ #include "components/OptionListComponent.h"
+ 
+ #include "guis/GuiDetectDevice.h"
+-#include "guis/GuiBluetoothPair.h"
+-#include "ThreadedBluetooth.h"
+-#include "guis/GuiBluetoothDevices.h"
++//#include "guis/GuiBluetoothPair.h"
++//#include "ThreadedBluetooth.h"
++//#include "guis/GuiBluetoothDevices.h"
+ 
+ #include "guis/GuiMsgBox.h"
+ #include "InputManager.h"
+@@ -22,13 +22,13 @@
+ #define gettext_playerid _("P%i'S CONTROLLER")
+ 
+ // Windows build does not have bluetooth support, so affect the label for Windows
+-#if WIN32
++//#if WIN32
+ #define controllers_settings_label		gettext_controllers_settings
+ #define controllers_group_label		gettext_controllers_priority
+-#else
+-#define controllers_settings_label		gettext_controllers_and_bluetooth_settings
+-#define controllers_group_label		gettext_controllers_player_assigments
+-#endif
++//#else
++//#define controllers_settings_label		gettext_controllers_and_bluetooth_settings
++//#define controllers_group_label		gettext_controllers_player_assigments
++//#endif
+ 
+ std::string GuiControllersSettings::getControllersSettingsLabel()
+ {
+@@ -84,7 +84,7 @@
+ 
+ 	if (steamdeckguns_menu)
+ 		addEntry(_("STEAMDECK MOUSE/GUN SETTINGS"), true, [this] { openControllersSpecificSettings_steamdeckgun(); });
+-
++/*
+ 	if (ApiSystem::getInstance()->isScriptingSupported(ApiSystem::BLUETOOTH))
+ 	{
+ 		addGroup(_("BLUETOOTH"));
+@@ -151,6 +151,7 @@
+ 		}
+ #endif
+ 	}
++*/
+ 
+     addGroup(_("CONTROL OPTIONS"));
+ 

@@ -22,6 +22,9 @@ case "$1" in
             mkdir -p "$OUT"/roms/mame/mame2003
             grep -Fvx -f <(cd "$OUT" || exit; find ./roms/mame/mame2003 \( -type f -o -xtype l \)) <(cd "$IN" || exit; find ./roms/mame/mame2003 \( -type f -o -xtype l \)) >> /tmp/updateuserdata.lst
         fi
+        if [ -d "$OUT"/roms/choko ]; then
+            grep -Fvx -f <(cd "$OUT" || exit; find ./roms/choko \( -type f -o -xtype l \)) <(cd "$IN" || exit; find ./roms/choko \( -type f -o -xtype l \)) >> /tmp/updateuserdata.lst
+        fi
         if [ -d "$OUT"/system ]; then
             grep -Fvx -f <(cd "$OUT" || exit; find ./system \( -type f -o -xtype l \)) <(cd "$IN" || exit; find ./system \( -type f -o -xtype l \)) >> /tmp/updateuserdata.lst
         fi
@@ -103,6 +106,29 @@ case "$1" in
         # Save to avoid to redo some steps every boot
         [ "$CURVERSION" != "$SHAREVERSION" ] && cp /usr/share/reglinux/system.version /userdata/system/data.version
 
+        # Mount RA overlay folders
+        rm -rf /userdata/system/configs/retroarch/assets.workdir
+        mkdir -p /userdata/system/configs/retroarch/assets.workdir
+        if ! mount -t overlay -o lowerdir=/overlay/base/usr/share/libretro/assets,upperdir=/userdata/system/configs/retroarch/assets,workdir=/userdata/system/configs/retroarch/assets.workdir none /usr/share/libretro/assets
+        then
+            rm -rf /userdata/system/configs/retroarch/assets.workdir
+            cp -rs /userdata/system/configs/retroarch/assets /usr/share/libretro/assets
+        fi
+        rm -rf /userdata/system/configs/retroarch/cores.workdir
+        mkdir -p /userdata/system/configs/retroarch/cores.workdir
+        if ! mount -t overlay -o lowerdir=/overlay/base/usr/lib/libretro,upperdir=/userdata/system/configs/retroarch/cores,workdir=/userdata/system/configs/retroarch/cores.workdir none /usr/lib/libretro
+        then
+            rm -rf /userdata/system/configs/retroarch/cores.workdir
+            cp -rs /userdata/system/configs/retroarch/cores/*.so /usr/lib/libretro/
+        fi
+        rm -rf /userdata/system/configs/retroarch/cores-info.workdir
+        mkdir -p /userdata/system/configs/retroarch/cores-info.workdir /userdata/system/configs/retroarch/cores-info
+        if ! mount -t overlay -o lowerdir=/overlay/base/usr/share/libretro/info,upperdir=/userdata/system/configs/retroarch/cores-info,workdir=/userdata/system/configs/retroarch/cores-info.workdir none /usr/share/libretro/info
+        then
+            rm -rf /userdata/system/configs/retroarch/cores-info.workdir
+            cp -rs /userdata/system/configs/retroarch/cores-info/*.info /usr/share/libretro/info/
+        fi
+
         # call user script with start condition
         if [ -e /boot/postshare.sh ]; then
             if [ "$TOTALSTEPS" -gt 0 ]; then
@@ -123,6 +149,7 @@ case "$1" in
     stop)
         # call user script with stop condition
         [ -e /boot/postshare.sh ] && bash /boot/postshare.sh stop
+        umount /usr/share/libretro/assets /usr/lib/libretro /usr/share/libretro/info
     ;;
 esac
 

@@ -62,17 +62,17 @@ do
     echo   "${BATOCERA_SUBTARGET}" > "${REGLINUX_BINARIES_DIR}/boot/boot/system.board" || exit 1
 
     #### boot-$BOARD.tar.zst ###############
-    echo "creating images/${BATOCERA_SUBTARGET}/boot-${BATOCERA_SUBTARGET}.tar.zst"
-    mkdir -p "${REGLINUX_BINARIES_DIR}/images/${BATOCERA_SUBTARGET}" || exit 1
-    (cd "${REGLINUX_BINARIES_DIR}/boot" && tar -I "zstd" -cf "${REGLINUX_BINARIES_DIR}/images/${BATOCERA_SUBTARGET}/boot-${BATOCERA_SUBTARGET}.tar.zst" *) || exit 1
+ #   echo "creating images/${BATOCERA_SUBTARGET}/boot-${BATOCERA_SUBTARGET}.tar.zst"
+ #   mkdir -p "${REGLINUX_BINARIES_DIR}/images/${BATOCERA_SUBTARGET}" || exit 1
+ #   (cd "${REGLINUX_BINARIES_DIR}/boot" && tar -I "zstd" -cf "${REGLINUX_BINARIES_DIR}/images/${BATOCERA_SUBTARGET}/boot-${BATOCERA_SUBTARGET}.tar.zst" *) || exit 1
 
     # create *.img
     if [ "${BATOCERA_LOWER_TARGET}" = "${BATOCERA_SUBTARGET}" ]; then
-        BATOCERAIMG="${REGLINUX_BINARIES_DIR}/images/${BATOCERA_SUBTARGET}/reglinux-${BATOCERA_SUBTARGET}-${SUFFIXVERSION}-${SUFFIXDATE}.img"
+        BATOCERAIMG="${GITHUB_WORKSPACE}/reglinux-${BATOCERA_SUBTARGET}-${SUFFIXVERSION}-${SUFFIXDATE}.img"
     else
-        BATOCERAIMG="${REGLINUX_BINARIES_DIR}/images/${BATOCERA_SUBTARGET}/reglinux-${BATOCERA_LOWER_TARGET}-${BATOCERA_SUBTARGET}-${SUFFIXVERSION}-${SUFFIXDATE}.img"
+        BATOCERAIMG="${GITHUB_WORKSPACE}/reglinux-${BATOCERA_LOWER_TARGET}-${BATOCERA_SUBTARGET}-${SUFFIXVERSION}-${SUFFIXDATE}.img"
     fi
-    echo "creating images/${BATOCERA_SUBTARGET}/"$(basename "${BATOCERAIMG}")"..." >&2
+    echo "creating "$(basename "${BATOCERAIMG}")"..." >&2
     rm -rf "${GENIMAGE_TMP}" || exit 1
     GENIMAGEDIR="${BR2_EXTERNAL_REGLINUX_PATH}/${TARGET_BOARD_PARENT_PATH}/${BATOCERA_PATHSUBTARGET}"
     GENIMAGEFILE="${GENIMAGEDIR}/genimage.cfg"
@@ -103,13 +103,13 @@ do
     rm -f "${REGLINUX_BINARIES_DIR}/boot.vfat" || exit 1
     rm -f "${REGLINUX_BINARIES_DIR}/userdata.ext4" || exit 1
     mv "${REGLINUX_BINARIES_DIR}/reglinux.img" "${BATOCERAIMG}" || exit 1
-    "${HOST_DIR}/usr/bin/pigz" -1 -p 4 "${BATOCERAIMG}" || exit 1
+    "${HOST_DIR}/usr/bin/pigz" -9 "${BATOCERAIMG}" || exit 1
 
     # delete the boot
     rm -rf "${REGLINUX_BINARIES_DIR}/boot" || exit 1
 
     # copy the version file needed for version check
-    cp "${TARGET_DIR}/usr/share/reglinux/system.version" "${REGLINUX_BINARIES_DIR}/images/${BATOCERA_SUBTARGET}" || exit 1
+    cp "${TARGET_DIR}/usr/share/reglinux/system.version" "${GITHUB_WORKSPACE}" || exit 1
 done
 
 #### md5 and sha256 #######################
@@ -119,7 +119,7 @@ do
     if [ "${BATOCERA_LOWER_TARGET}" = "${BATOCERA_SUBTARGET}" ]; then
         BATOCERA_SUBTARGET="${BATOCERA_LOWER_TARGET}"
     fi
-    for FILE in "${REGLINUX_BINARIES_DIR}/images/${BATOCERA_SUBTARGET}/boot-${BATOCERA_SUBTARGET}.tar.zst" "${REGLINUX_BINARIES_DIR}/images/${BATOCERA_SUBTARGET}/reglinux-"*".img.gz"
+    for FILE in "${GITHUB_WORKSPACE}/reglinux-"*".img.gz"
     do
         echo "creating ${FILE}.md5"
         CKS=$(md5sum "${FILE}" | sed -e s+'^\([^ ]*\) .*$'+'\1'+)
@@ -136,5 +136,5 @@ done
 rm -rf ${GENIMAGE_TMP}
 
 #### update the target dir with some information files
-cp "${TARGET_DIR}/usr/share/reglinux/system.version" "${REGLINUX_BINARIES_DIR}" || exit 1
-"${BR2_EXTERNAL_REGLINUX_PATH}"/scripts/linux/systemsReport.sh "${PWD}" "${REGLINUX_BINARIES_DIR}" || exit 1
+# cp "${TARGET_DIR}/usr/share/reglinux/system.version" "${REGLINUX_BINARIES_DIR}" || exit 1
+# "${BR2_EXTERNAL_REGLINUX_PATH}"/scripts/linux/systemsReport.sh "${PWD}" "${REGLINUX_BINARIES_DIR}" || exit 1
