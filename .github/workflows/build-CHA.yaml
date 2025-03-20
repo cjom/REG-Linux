@@ -52,9 +52,6 @@ jobs:
           	df -Ph $(PWD) \n :' buildroot/package/pkg-generic.mk
           # After each downloaded package is extracted, delete older and keep latest 3
           sed -i 's:(TAR_OPTIONS) -:(TAR_OPTIONS) - \&\& find \$\$(DL_DIR) -mindepth 1 -maxdepth 1 -type d -printf "%T\@\\t%p\\n" | sort -g | head -n -3 | cut -f 2- | xargs rm -rfv :' buildroot/package/pkg-generic.mk
-      - name: Tmate
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
       - name: compile
         id: compile_step
         shell: bash
@@ -87,6 +84,11 @@ jobs:
           # Debug
           echo "Looking for *.img.gz"
           find ${GITHUB_WORKSPACE}/ -type f -iname '*.img.gz' -print
+      - name: Tmate
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled && failure() }}
+        with:
+          timeout-minutes: 5
       - name: upload_img
         id: upload_img
         uses: actions/upload-artifact@v4
