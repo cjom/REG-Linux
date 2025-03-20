@@ -51,7 +51,7 @@ jobs:
             if test -e $(HOST_DIR)/arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py -a ! test -e $(HOST_DIR)/arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py.patched ; then \
               echo "PATCHING PYTHON SYSCONFIGDATA..." \
               sed -i "s|/usr/include/python|/__w/REG-Linux/REG-Linux/output/cha/host/arm-buildroot-linux-gnueabihf/sysroot/usr/include/python|g" arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py \
-              sed -i "s|'\''/usr/lib'\''|'\''/__w/REG-Linux/REG-Linux/output/cha/host/arm-buildroot-linux-gnueabihf/sysroot/usr/lib'\''|g" arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py \
+              sed -i "s|'"'"'/usr/lib'"'"'|'"'"'/__w/REG-Linux/REG-Linux/output/cha/host/arm-buildroot-linux-gnueabihf/sysroot/usr/lib'"'"'|g" arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py \
               touch $(HOST_DIR)/arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py.patched \
               cat $(HOST_DIR)/arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py
             fi \
