@@ -48,10 +48,10 @@ jobs:
           	find $(BUILD_DIR) -type f -name "libblkid.so.*" -execdir mv \{\} libblkid.so \\; \
           	find $(BUILD_DIR) -type f -not -path "*/buildroot-config/*"  -not \\( -name ".stamp*" -or -name ".br*" -or -name ".config" -or -name "libavahi-client.la" -or -name "libavahi-client.so" -or -name "libavahi-common.la" -or -name "libavahi-common.so" -or -name "libblkid.la" -or -name "libblkid.so" \\) -delete \
           	find $(BUILD_DIR) -type d -mindepth 1 -empty -delete \
-            if test -e $(HOST_DIR)/arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py -a ! -e $(HOST_DIR)/arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py.patched ; then \
+            if test -e $(HOST_DIR)/arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py -a ! test -e $(HOST_DIR)/arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py.patched ; then \
               echo "PATCHING PYTHON SYSCONFIGDATA..." \
               sed -i "s|/usr/include/python|/__w/REG-Linux/REG-Linux/output/cha/host/arm-buildroot-linux-gnueabihf/sysroot/usr/include/python|g" arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py \
-              sed -i "s|\'/usr/lib\'|\'/__w/REG-Linux/REG-Linux/output/cha/host/arm-buildroot-linux-gnueabihf/sysroot/usr/lib\'|g" arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py \
+              sed -i "s|'\''/usr/lib'\''|'\''/__w/REG-Linux/REG-Linux/output/cha/host/arm-buildroot-linux-gnueabihf/sysroot/usr/lib'\''|g" arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py \
               touch $(HOST_DIR)/arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py.patched \
               cat $(HOST_DIR)/arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py
             fi \
