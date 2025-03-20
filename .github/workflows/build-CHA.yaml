@@ -48,8 +48,16 @@ jobs:
           	find $(BUILD_DIR) -type f -name "libblkid.so.*" -execdir mv \{\} libblkid.so \\; \
           	find $(BUILD_DIR) -type f -not -path "*/buildroot-config/*"  -not \\( -name ".stamp*" -or -name ".br*" -or -name ".config" -or -name "libavahi-client.la" -or -name "libavahi-client.so" -or -name "libavahi-common.la" -or -name "libavahi-common.so" -or -name "libblkid.la" -or -name "libblkid.so" \\) -delete \
           	find $(BUILD_DIR) -type d -mindepth 1 -empty -delete \
+            if test -e $(HOST_DIR)/arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py -a ! -e $(HOST_DIR)/arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py.patched ; then \
+              echo "PATCHING PYTHON SYSCONFIGDATA..." \
+              sed -i "s|/usr/include/python|/__w/REG-Linux/REG-Linux/output/cha/host/arm-buildroot-linux-gnueabihf/sysroot/usr/include/python|g" arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py \
+              sed -i "s|\'/usr/lib\'|\'/__w/REG-Linux/REG-Linux/output/cha/host/arm-buildroot-linux-gnueabihf/sysroot/usr/lib\'|g" arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py \
+              touch $(HOST_DIR)/arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py.patched \
+              cat $(HOST_DIR)/arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py
+            fi \
           	du -h -s $(PWD) \
           	df -Ph $(PWD) \n :' buildroot/package/pkg-generic.mk
+            cat buildroot/package/pkg-generic.mk
           # After each downloaded package is extracted, delete older and keep latest 3
           sed -i 's:(TAR_OPTIONS) -:(TAR_OPTIONS) - \&\& find \$\$(DL_DIR) -mindepth 1 -maxdepth 1 -type d -printf "%T\@\\t%p\\n" | sort -g | head -n -3 | cut -f 2- | xargs rm -rfv :' buildroot/package/pkg-generic.mk
       - name: compile
@@ -72,11 +80,6 @@ jobs:
             if wget -q -O ${GITHUB_WORKSPACE}/output/cha/host/reglinux-output-cha-host.zip 'https://github.com/cjom/REG-Linux/releases/download/latest/reglinux-output-cha-host.zip' ; then
               cd ${GITHUB_WORKSPACE}/output/cha/host
               unzip -q ./reglinux-output-cha-host.zip && rm ./reglinux-output-cha-host.zip
-              STRINGTOREPLACE="/usr/include/python"
-              sed -i "s|${STRINGTOREPLACE}|/__w/REG-Linux/REG-Linux/output/cha/host/arm-buildroot-linux-gnueabihf/sysroot${STRINGTOREPLACE}|g" arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py
-              STRINGTOREPLACE="'/usr/lib'"
-              REPLACEWITH="'/__w/REG-Linux/REG-Linux/output/cha/host/arm-buildroot-linux-gnueabihf/sysroot/usr/lib'"
-              sed -i "s|${STRINGTOREPLACE}|${REPLACEWITH}|g" arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py
             fi
             cd ${GITHUB_WORKSPACE}
           fi
