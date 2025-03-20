@@ -71,7 +71,7 @@ jobs:
             fi
             cd ${GITHUB_WORKSPACE}
           fi
-          make cha-build
+          make DEBUG_BUILD=0 cha-build
           # Debug
           echo "Looking for *.img.gz"
           find ${GITHUB_WORKSPACE}/ -type f -iname '*.img.gz' -print
