@@ -62,7 +62,8 @@ jobs:
             if [ ! -e ${GITHUB_WORKSPACE}/output/cha/host/arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py.patched ] ; then
               sleep 10
               STRINGTOREPLACE="'/usr/include/python3.12'"
-              sed -i "s|${STRINGTOREPLACE}|/__w/REG-Linux/REG-Linux/output/cha/host/arm-buildroot-linux-gnueabihf/sysroot${STRINGTOREPLACE}|g" ${GITHUB_WORKSPACE}/output/cha/host/arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py
+              REPLACEWITH="'/__w/REG-Linux/REG-Linux/output/cha/host/arm-buildroot-linux-gnueabihf/sysroot/usr/include/python3.12'"
+              sed -i s|${STRINGTOREPLACE}|${REPLACEWITH}|g" ${GITHUB_WORKSPACE}/output/cha/host/arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py
               STRINGTOREPLACE="'/usr/lib'"
               REPLACEWITH="'/__w/REG-Linux/REG-Linux/output/cha/host/arm-buildroot-linux-gnueabihf/sysroot/usr/lib'"
               sed -i "s|${STRINGTOREPLACE}|${REPLACEWITH}|g" ${GITHUB_WORKSPACE}/output/cha/host/arm-buildroot-linux-gnueabihf/sysroot/usr/lib/python3.12/_sysconfigdata__linux_arm-linux-gnueabihf.py
