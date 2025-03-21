@@ -92,8 +92,7 @@ jobs:
       - name: Tmate
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled && failure() }}
-        with:
-          timeout-minutes: 5
+        timeout-minutes: 5
       - name: upload_img
         id: upload_img
         uses: actions/upload-artifact@v4
