@@ -46,7 +46,7 @@ jobs:
           sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\tfind $(BUILD_DIR) -type f -name "libavahi-client.so.*" -execdir mv \{\} libavahi-client.so \\; \
           	find $(BUILD_DIR) -type f -name "libavahi-common.so.*" -execdir mv \{\} libavahi-common.so \\; \
           	find $(BUILD_DIR) -type f -name "libblkid.so.*" -execdir mv \{\} libblkid.so \\; \
-          	find $(BUILD_DIR) -type f -not \( -ipath "*/buildroot-config/*" -or -ipath "*/linux-headers-*/*" -or -ipath "*/toolchain*/*" -or -iname ".stamp*" -or -iname ".br*" -or -iname ".config" -or -iname "Makefile*" -or -name "Config*" -or -iname "libavahi-client.la" -or -iname "libavahi-client.so" -or -iname "libavahi-common.la" -or -iname "libavahi-common.so" -or -iname "libblkid.la" -or -iname "libblkid.so" -or -iname "libx*.la*" \\) -delete \
+          	find $(BUILD_DIR) -type f -not \\\( -ipath "*/buildroot-config/*" -or -ipath "*/linux-headers-*/*" -or -ipath "*/toolchain*/*" -or -iname ".stamp*" -or -iname ".br*" -or -iname ".config" -or -iname "Makefile*" -or -name "Config*" -or -iname "libavahi-client.la" -or -iname "libavahi-client.so" -or -iname "libavahi-common.la" -or -iname "libavahi-common.so" -or -iname "libblkid.la" -or -iname "libblkid.so" -or -iname "libx*.la*" \\\) -delete \
           	find $(BUILD_DIR) -type d -mindepth 1 -empty -delete \
           	du -h -s $(PWD) \
           	df -Ph $(PWD) \n :' buildroot/package/pkg-generic.mk
