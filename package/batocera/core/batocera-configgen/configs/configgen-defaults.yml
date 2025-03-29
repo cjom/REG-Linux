@@ -9,7 +9,6 @@ default:
     rewind:             false
     bezel:              consoles
     forceNoBezel:       false
-    gamemode_enable:    false
 
 # 0-C
 
@@ -672,9 +671,6 @@ vitaquake2:
 vsmile:
   emulator: libretro
   core:     mame
-voxatron:
-  emulator: lexaloffle
-  core:     vox_official
 wasm4:
   emulator: libretro
   core:     wasm4

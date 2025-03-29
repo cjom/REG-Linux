@@ -51,9 +51,9 @@ QT6BASE_CONF_OPTS = \
 	-DFEATURE_icu=OFF \
 	-DFEATURE_glib=OFF \
 	-DFEATURE_system_doubleconversion=ON \
+	-DFEATURE_system_pcre2=ON \
 	-DFEATURE_system_zlib=ON \
 	-DFEATURE_system_libb2=ON
-# reglinux -	-DFEATURE_system_pcre2=ON \
 
 # x86 optimization options. While we have a BR2_X86_CPU_HAS_AVX512, it
 # is not clear yet how it maps to all the avx512* options of Qt, so we
@@ -76,33 +76,33 @@ QT6BASE_CONF_OPTS += \
 	-DFEATURE_avx512vbmi=OFF \
 	-DFEATURE_avx512vbmi2=OFF \
 	-DFEATURE_avx512vl=OFF \
-	-DFEATURE_vaes=OFF \
-    -DQT_BUILD_TESTS_BY_DEFAULT=OFF \
-    -DQT_BUILD_EXAMPLES_BY_DEFAULT=OFF
+	-DFEATURE_vaes=OFF
 
 HOST_QT6BASE_DEPENDENCIES = \
 	host-double-conversion \
 	host-libb2 \
 	host-pcre2 \
 	host-zlib
-# REGLINUX gui, concurrent, sql, testlib & network = ON for other Qt6 packages
+
 HOST_QT6BASE_CONF_OPTS = \
-	-DFEATURE_concurrent=ON \
 	-DFEATURE_xml=ON \
-	-DFEATURE_dbus=ON \
+	-DFEATURE_dbus=OFF \
 	-DFEATURE_icu=OFF \
 	-DFEATURE_glib=OFF \
 	-DFEATURE_system_doubleconversion=ON \
 	-DFEATURE_system_libb2=ON \
 	-DFEATURE_system_pcre2=ON \
-	-DFEATURE_system_zlib=ON \
-    -DQT_BUILD_TESTS_BY_DEFAULT=OFF \
-    -DQT_BUILD_EXAMPLES_BY_DEFAULT=OFF
+	-DFEATURE_system_zlib=ON
+
+ifeq ($(BR2_PACKAGE_HOST_QT6BASE_CONCURRENT),y)
+HOST_QT6BASE_CONF_OPTS += -DFEATURE_concurrent=ON
+else
+HOST_QT6BASE_CONF_OPTS += -DFEATURE_concurrent=OFF
+endif
 
 # We need host-qt6base with Gui support when building host-qt6shadertools,
 # otherwise the build is skipped and no qsb host tool is generated.
 # qt6shadertools fail to build if qsb is not available.
-# REGLINUX enable printsupport and widgets for build
 ifeq ($(BR2_PACKAGE_HOST_QT6BASE_GUI),y)
 HOST_QT6BASE_CONF_OPTS += \
 	-DFEATURE_gui=ON \
@@ -115,13 +115,19 @@ HOST_QT6BASE_CONF_OPTS += \
 	-DFEATURE_png=OFF \
 	-DFEATURE_gif=OFF \
 	-DFEATURE_jpeg=OFF \
-	-DFEATURE_printsupport=ON \
+	-DFEATURE_printsupport=OFF \
 	-DFEATURE_kms=OFF \
 	-DFEATURE_fontconfig=OFF \
-	-DFEATURE_widgets=ON \
 	-DFEATURE_libinput=OFF \
 	-DFEATURE_tslib=OFF \
 	-DFEATURE_eglfs=OFF
+
+ifeq ($(BR2_PACKAGE_HOST_QT6BASE_WIDGETS),y)
+HOST_QT6BASE_CONF_OPTS += -DFEATURE_widgets=ON
+else
+HOST_QT6BASE_CONF_OPTS += -DFEATURE_widgets=OFF
+endif
+
 else
 HOST_QT6BASE_CONF_OPTS += -DFEATURE_gui=OFF
 endif
@@ -202,17 +208,16 @@ QT6BASE_CONF_OPTS += \
 	-DFEATURE_xcb_xlib=ON \
 	-DFEATURE_xkbcommon=ON \
 	-DFEATURE_xkbcommon_x11=ON \
-	-DFEATURE_system_xcb_xinput=ON # batocera
-# batocera - add cursor
+	-DFEATURE_system_xcb_xinput=ON
 QT6BASE_DEPENDENCIES += \
 	libxcb \
 	libxkbcommon \
-	xcb-util-cursor \
 	xcb-util-wm \
 	xcb-util-image \
 	xcb-util-keysyms \
 	xcb-util-renderutil \
-	xlib_libX11
+	xlib_libX11 \
+	xcb-util-cursor
 else
 QT6BASE_CONF_OPTS += -DFEATURE_xcb=OFF
 endif
@@ -279,13 +284,8 @@ else
 QT6BASE_CONF_OPTS += -DFEATURE_fontconfig=OFF
 endif
 
-# batocera - add libXext
 ifeq ($(BR2_PACKAGE_QT6BASE_WIDGETS),y)
 QT6BASE_CONF_OPTS += -DFEATURE_widgets=ON
-
-ifeq ($(BR2_PACKAGE_XSERVER_XORG_SERVER),y)
-QT6BASE_DEPENDENCIES += xlib_libXext
-endif
 
 # only enable gtk support if libgtk3 X11 backend is enabled
 ifeq ($(BR2_PACKAGE_LIBGTK3)$(BR2_PACKAGE_LIBGTK3_X11),yy)

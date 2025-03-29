@@ -134,9 +134,11 @@ PACKAGES_OPENBOR="openbor4432
                   openbor7142
                   openbor7530"
 
-PACKAGES_EMULATORS="amiberry
+PACKAGES_EMULATORS="86Box
+                    amiberry
                     amiberry-lite
                     applewin
+                    ares
                     azahar
                     bigpemu
                     box86
@@ -144,7 +146,6 @@ PACKAGES_EMULATORS="amiberry
                     cemu
                     citron
                     clk
-                    hypseus-singe
                     demul
                     dolphin-emu
                     dolphin-triforce
@@ -156,11 +157,12 @@ PACKAGES_EMULATORS="amiberry
                     liblcf
                     eka2l1
                     flycast
+                    gopher64
                     gsplus
                     hatari
+                    hypseus-singe
                     ikemen
-                    lexaloffle-pico8
-                    lexaloffle-voxatron
+                    izapple2
                     lightspark
                     mame
                     mednafen
@@ -169,6 +171,7 @@ PACKAGES_EMULATORS="amiberry
                     moonlight-embedded
                     openmsx
                     oricutron
+                    panda3ds
                     pcsx2
                     play
                     ppsspp
@@ -178,11 +181,13 @@ PACKAGES_EMULATORS="amiberry
                     ruffle
                     ryujinx
                     scummvm
+                    shadps4
                     simcoupe
                     snes9x
                     solarus-engine
                     sugarbox
                     supermodel
+                    touchHLE
                     thextech
                     tsugaru
                     vice
@@ -194,6 +199,7 @@ PACKAGES_EMULATORS="amiberry
 
 PACKAGES_PORTS="abuse
                 abuse-data
+                augustus
                 cannonball
                 cdogs
                 cgenius
@@ -207,6 +213,7 @@ PACKAGES_PORTS="abuse
                 fallout1-ce
                 fallout2-ce
                 fheroes2
+                gemrb
                 gzdoom
                 hcl
                 hurrican
@@ -215,6 +222,7 @@ PACKAGES_PORTS="abuse
 		jazz2-native
                 openjazz
                 openlara
+                openmw
                 raze
                 sdlpop
                 sonic3-air
