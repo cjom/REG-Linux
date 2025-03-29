@@ -1,114 +1,14 @@
-config BR2_PACKAGE_REGLINUX_RELEASE
-bool "release mode"
-default y
+# Targets
+source "$BR2_EXTERNAL_REGLINUX_PATH/package/system/reglinux-system/Config.in.targets"
 
-##### define variables to use in this file
-if BR2_PACKAGE_BATOCERA_RPI_MESA3D
-	config BR2_PACKAGE_BATOCERA_RPI_ANY
-	bool "any rpi"
-	default y
-endif
+# GPU drivers and Vulkan
+source "$BR2_EXTERNAL_REGLINUX_PATH/package/system/reglinux-system/Config.in.gpu"
 
-if BR2_PACKAGE_SYSTEM_TARGET_BCM2835	|| \
-   BR2_PACKAGE_SYSTEM_TARGET_BCM2836	|| \
-   BR2_PACKAGE_SYSTEM_TARGET_BCM2837
-	config BR2_PACKAGE_SYSTEM_TARGET_RPI_GLES2
-	bool "rpi_gles2"
-	default y
-	help
-	  Selected when a RaspberryPi gles2 platform is being built
-endif
+# Emulators
+source "$BR2_EXTERNAL_REGLINUX_PATH/package/system/reglinux-system/Config.in.emulators"
 
-if BR2_PACKAGE_SYSTEM_TARGET_X86_64 || BR2_PACKAGE_SYSTEM_TARGET_X86_64_V3
-	config BR2_PACKAGE_SYSTEM_TARGET_X86_64_ANY
-	bool "any x86_64"
-	default y
-endif
-
-if BR2_PACKAGE_SYSTEM_TARGET_X86 || BR2_PACKAGE_SYSTEM_TARGET_X86_64_ANY
-	config BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	bool "any x86 or x86_64"
-	default y
-endif
-
-if BR2_PACKAGE_SYSTEM_TARGET_AMLOGIC_GLES2 || BR2_PACKAGE_SYSTEM_TARGET_AMLOGIC_GLES3
-	config BR2_PACKAGE_SYSTEM_TARGET_AMLOGIC_ANY
-	bool "any amlogic"
-	default y
-endif
-
-if BR2_PACKAGE_SYSTEM_TARGET_RK3128 || BR2_PACKAGE_SYSTEM_TARGET_RK3328
-	config BR2_PACKAGE_SYSTEM_TARGET_ROCKCHIP_GLES2
-	bool "rockchip_gles2"
-	default y
-	help
-	  Selected when a Rockchip gles2 platform is being built
-endif
-
-if  BR2_PACKAGE_SYSTEM_TARGET_RK3399	|| \
-    BR2_PACKAGE_SYSTEM_TARGET_RK3288	|| \
-    BR2_PACKAGE_SYSTEM_TARGET_RK3588	|| \
-    BR2_PACKAGE_SYSTEM_TARGET_RK3568	|| \
-    BR2_PACKAGE_SYSTEM_TARGET_RK3326
-	config BR2_PACKAGE_SYSTEM_TARGET_ROCKCHIP_GLES3
-	bool "rockchip_gles3"
-	default y
-	help
-	  Selected when a Rockchip gles3 platform is being built
-endif
-
-if BR2_PACKAGE_SYSTEM_TARGET_S905 || BR2_PACKAGE_SYSTEM_TARGET_S812
-	config BR2_PACKAGE_SYSTEM_TARGET_AMLOGIC_GLES2
-	bool "amlogic gles2"
-	default y
-endif
-
-if BR2_PACKAGE_SYSTEM_TARGET_S905GEN2	|| \
-   BR2_PACKAGE_SYSTEM_TARGET_S905GEN3 || \
-   BR2_PACKAGE_SYSTEM_TARGET_S922X	|| \
-   BR2_PACKAGE_SYSTEM_TARGET_A3GEN2	|| \
-   BR2_PACKAGE_SYSTEM_TARGET_S9GEN4
-	config BR2_PACKAGE_SYSTEM_TARGET_AMLOGIC_GLES3
-	bool "amlogic gles3"
-	default y
-endif
-
-# add platforms that support GLES2 here
-# the GLES2 backend maps to OpenGL 2.1 on desktop, OpenGL ES 2.0 on mobile and WebGL 1.0 on the web.
-if  BR2_PACKAGE_SYSTEM_TARGET_X86_ANY		|| \
-    BR2_PACKAGE_SYSTEM_TARGET_AMLOGIC_GLES2	|| \
-    BR2_PACKAGE_SYSTEM_TARGET_ROCKCHIP_GLES2	|| \
-    BR2_PACKAGE_SYSTEM_TARGET_RPI_GLES2	|| \
-    BR2_PACKAGE_SYSTEM_TARGET_H3		|| \
-    BR2_PACKAGE_SYSTEM_TARGET_CHA		|| \
-    BR2_PACKAGE_SYSTEM_TARGET_H5		|| \
-    BR2_PACKAGE_SYSTEM_TARGET_H6		|| \
-    BR2_PACKAGE_SYSTEM_TARGET_XU4
-	config BR2_PACKAGE_HAS_GLES2
-	bool "target has gles2 support"
-	default y
-endif
-
-# add platforms that support GLES3 here
-# the GLES3 backend maps to OpenGL 3.3 on desktop, OpenGL ES 3.0 on mobile and WebGL 2.0 on the web.
-if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY          || \
-   BR2_PACKAGE_SYSTEM_TARGET_BCM2711          || \
-   BR2_PACKAGE_SYSTEM_TARGET_BCM2712          || \
-   BR2_PACKAGE_SYSTEM_TARGET_JH7110           || \
-   BR2_PACKAGE_SYSTEM_TARGET_K1               || \
-   BR2_PACKAGE_SYSTEM_TARGET_H616             || \
-   BR2_PACKAGE_SYSTEM_TARGET_H700             || \
-   BR2_PACKAGE_SYSTEM_TARGET_AMLOGIC_GLES3    || \
-   BR2_PACKAGE_SYSTEM_TARGET_ROCKCHIP_GLES3   || \
-   BR2_PACKAGE_SYSTEM_TARGET_ODIN             || \
-   BR2_PACKAGE_SYSTEM_TARGET_SM8250           || \
-   BR2_PACKAGE_SYSTEM_TARGET_SM8550           || \
-   BR2_PACKAGE_SYSTEM_TARGET_MT8395           || \
-   BR2_PACKAGE_SYSTEM_TARGET_ASAHI
-    config BR2_PACKAGE_HAS_GLES3
-    bool "target gles3 support"
-    default y
-endif
+# Ports
+source "$BR2_EXTERNAL_REGLINUX_PATH/package/system/reglinux-system/Config.in.ports"
 
 config BR2_PACKAGE_MAME_BUILD_FROM_SOURCE
 	bool "mame-build-from-source"
@@ -144,34 +44,6 @@ config BR2_PACKAGE_REGLINUX_MUSIC_SUPPORT
 
 	help
 	  Music support packages (MIDI, ALSA, FLAC, Ogg/Vorbis, MP3, modules...)
-
-config BR2_PACKAGE_REGLINUX_VULKAN
-	bool "REG-Linux Vulkan support"
-
-	# Vulkan headers, loaders, SPIR-V, glsLang
-	select BR2_PACKAGE_VULKAN_HEADERS
-	select BR2_PACKAGE_VULKAN_LOADER
-	select BR2_PACKAGE_VULKAN_VOLK
-	select BR2_PACKAGE_VULKAN_TOOLS
-	select BR2_PACKAGE_SPIRV_TOOLS
-
-	# Vulkan mesa drivers
-	select BR2_PACKAGE_MESA3D_VULKAN_DRIVER_INTEL		if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_MESA3D_VULKAN_DRIVER_HASWELL		if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_MESA3D_VULKAN_DRIVER_AMD		if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_MESA3D_VULKAN_DRIVER_BROADCOM	if BR2_PACKAGE_SYSTEM_TARGET_BCM2711 || BR2_PACKAGE_SYSTEM_TARGET_BCM2712
-	select BR2_PACKAGE_MESA3D_VULKAN_DRIVER_PANFROST	if BR2_PACKAGE_SYSTEM_PANFROST_MESA3D
-	select BR2_PACKAGE_MESA3D_VULKAN_DRIVER_FREEDRENO	if BR2_PACKAGE_SYSTEM_FREEDRENO_MESA3D
-	select BR2_PACKAGE_MESA3D_VULKAN_DRIVER_ASAHI		if BR2_PACKAGE_REGLINUX_ASAHI_MESA3D
-
-	# Zink for OpenGL on-the-top of Vulkan
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_ZINK		if BR2_PACKAGE_MESA3D
-
-	# for debug purposes
-	select BR2_PACKAGE_MESA3D_VULKAN_DRIVER_LAVAPIPE	if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-
-	help
-	  Vulkan support for REG-Linux
 
 config BR2_PACKAGE_REGLINUX_SYSTEM
 	bool "REG-Linux"
@@ -299,9 +171,9 @@ config BR2_PACKAGE_REGLINUX_SYSTEM
 	select BR2_PACKAGE_MOKUTIL				if BR2_PACKAGE_SYSTEM_TARGET_X86_64_ANY # mokutil machine owner key utility
 
 	# Controllers
-	select BR2_PACKAGE_XONE					if !BR2_mipsel && !BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 && !BR2_PACKAGE_SYSTEM_TARGET_RK3326 && !BR2_PACKAGE_SYSTEM_TARGET_CHA # xbox receiver (require linux >= 4.15)
-	select BR2_PACKAGE_XPAD_NOONE				if !BR2_mipsel && !BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 && !BR2_PACKAGE_SYSTEM_TARGET_RK3326 && !BR2_PACKAGE_SYSTEM_TARGET_CHA # xbox receiver (require linux >= 4.15)
-	select BR2_PACKAGE_XPADNEO				if !BR2_mipsel && !BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 && !BR2_PACKAGE_SYSTEM_TARGET_RK3326 && !BR2_PACKAGE_SYSTEM_TARGET_CHA # xbox receiver (require linux >= 4.18)
+	select BR2_PACKAGE_XONE					if !BR2_mipsel && !BR2_PACKAGE_SYSTEM_TARGET_RK3326 && !BR2_PACKAGE_SYSTEM_TARGET_CHA # xbox receiver (require linux >= 4.15)
+	select BR2_PACKAGE_XPAD_NOONE				if !BR2_mipsel && !BR2_PACKAGE_SYSTEM_TARGET_RK3326 && !BR2_PACKAGE_SYSTEM_TARGET_CHA # xbox receiver (require linux >= 4.15)
+	select BR2_PACKAGE_XPADNEO				if !BR2_mipsel && !BR2_PACKAGE_SYSTEM_TARGET_RK3326 && !BR2_PACKAGE_SYSTEM_TARGET_CHA # xbox receiver (require linux >= 4.18)
 	select BR2_PACKAGE_WII_U_GC_ADAPTER			if !BR2_mipsel && !BR2_PACKAGE_SYSTEM_TARGET_BCM2835 && !BR2_PACKAGE_SYSTEM_TARGET_RK3326 && !BR2_PACKAGE_SYSTEM_TARGET_CHA # wii-u-gc-adapter
 	select BR2_PACKAGE_WIIMOTES_RULES			if !BR2_mipsel && !BR2_PACKAGE_SYSTEM_TARGET_BCM2835 && !BR2_PACKAGE_SYSTEM_TARGET_RK3326 && !BR2_PACKAGE_SYSTEM_TARGET_CHA # wiimotes
 	select BR2_PACKAGE_WIIMOTE_3RDPARTY			if !BR2_mipsel && !BR2_PACKAGE_SYSTEM_TARGET_BCM2835 && !BR2_PACKAGE_SYSTEM_TARGET_RK3326 && !BR2_PACKAGE_SYSTEM_TARGET_CHA # some non official wiimotes
@@ -309,7 +181,7 @@ config BR2_PACKAGE_REGLINUX_SYSTEM
 	select BR2_PACKAGE_BATOCERA_GUNS			if !BR2_mipsel && !BR2_PACKAGE_SYSTEM_TARGET_BCM2835 && !BR2_PACKAGE_SYSTEM_TARGET_RK3326 && !BR2_PACKAGE_SYSTEM_TARGET_RK3128 && !BR2_PACKAGE_SYSTEM_TARGET_CHA
 	select BR2_PACKAGE_BATOCERA_WHEEL_CALIBRATOR		if !BR2_mipsel && !BR2_PACKAGE_SYSTEM_TARGET_BCM2835 && !BR2_PACKAGE_SYSTEM_TARGET_RK3326 && !BR2_PACKAGE_SYSTEM_TARGET_RK3128 && !BR2_PACKAGE_SYSTEM_TARGET_CHA
 	select BR2_PACKAGE_NEW_LG4FF				if !BR2_mipsel && !BR2_PACKAGE_SYSTEM_TARGET_BCM2835 && !BR2_PACKAGE_SYSTEM_TARGET_RK3326 && !BR2_PACKAGE_SYSTEM_TARGET_RK3128 && !BR2_PACKAGE_SYSTEM_TARGET_CHA # Improved Linux module driver for Logitech driving wheels (the lg4ff is disabled in kernels)
-	select BR2_PACKAGE_HID_NX				if !BR2_mipsel && !BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 && !BR2_PACKAGE_SYSTEM_TARGET_BCM2835 && !BR2_PACKAGE_SYSTEM_TARGET_RK3326 && !BR2_PACKAGE_SYSTEM_TARGET_CHA # updated nintendo switch controller driver, requires kernel > 4.4
+	select BR2_PACKAGE_HID_NX				if !BR2_mipsel && !BR2_PACKAGE_SYSTEM_TARGET_BCM2835 && !BR2_PACKAGE_SYSTEM_TARGET_RK3326 && !BR2_PACKAGE_SYSTEM_TARGET_CHA # updated nintendo switch controller driver, requires kernel > 4.4
 	select BR2_PACKAGE_JOYCOND				if BR2_PACKAGE_HID_NX # nintendo switch joycon daemon (requires hid-nx)
 	select BR2_PACKAGE_JAMMASD				if !BR2_mipsel && !BR2_PACKAGE_SYSTEM_TARGET_RK3326 && !BR2_PACKAGE_SYSTEM_TARGET_CHA
 	select BR2_PACKAGE_QTSIXA_SHANWAN			if !BR2_mipsel && !BR2_PACKAGE_SYSTEM_TARGET_RK3326 && !BR2_PACKAGE_SYSTEM_TARGET_CHA # ps3 pad
@@ -332,11 +204,6 @@ config BR2_PACKAGE_REGLINUX_SYSTEM
 	# LUA
 	select BR2_PACKAGE_LUA
 	select BR2_PACKAGE_LUA_5_4
-
-	# screens
-	#nope select BR2_PACKAGE_DMD_SIMULATOR if !BR2_PACKAGE_SYSTEM_TARGET_CHA
-	#nope select BR2_PACKAGE_DMD_SIMULATOR_PLAYER if !BR2_PACKAGE_SYSTEM_TARGET_CHA
-	#nope select BR2_PACKAGE_BATOCERA_BACKGLASS if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
 
 	# swap on zram, optional user-enabled service
 	select BR2_PACKAGE_ZRAMSWAP             if BR2_PACKAGE_SYSTEM_TARGET_BCM2835 || \
@@ -385,7 +252,8 @@ config BR2_PACKAGE_REGLINUX_SYSTEM
 						   !BR2_PACKAGE_SYSTEM_TARGET_S812		&& \
 						   !BR2_PACKAGE_SYSTEM_TARGET_ODIN		&& \
 						   !BR2_PACKAGE_SYSTEM_TARGET_SM8550		&& \
-						   !BR2_PACKAGE_SYSTEM_TARGET_H700
+						   !BR2_PACKAGE_SYSTEM_TARGET_H700		&& \
+						   !BR2_PACKAGE_SYSTEM_TARGET_ASAHI
 
 	select BR2_PACKAGE_RTL8821AU_MORROWNR	if BR2_PACKAGE_SYSTEM_TARGET_S922X || BR2_PACKAGE_SYSTEM_TARGET_A3GEN2 || BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
 	select BR2_PACKAGE_RTL88X2BU		if BR2_PACKAGE_SYSTEM_TARGET_S922X || BR2_PACKAGE_SYSTEM_TARGET_A3GEN2 || BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
@@ -399,12 +267,7 @@ config BR2_PACKAGE_REGLINUX_SYSTEM
 						   BR2_PACKAGE_SYSTEM_TARGET_A3GEN2	|| \
 						   BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
 
-	# do NOT remove this one for OGA
-	select BR2_PACKAGE_RTL8192EU		if !BR2_PACKAGE_SYSTEM_TARGET_JZ4770  && \
-						   !BR2_PACKAGE_SYSTEM_TARGET_BCM2835	&& \
-						   !BR2_PACKAGE_SYSTEM_TARGET_H3	&& \
-						   !BR2_PACKAGE_SYSTEM_TARGET_RK3128	&& \
-						   !BR2_PACKAGE_SYSTEM_TARGET_RK3588
+	select BR2_PACKAGE_RTL8192EU		if !BR2_PACKAGE_SYSTEM_TARGET_JZ4770 && !BR2_PACKAGE_SYSTEM_TARGET_BCM2835 && !BR2_PACKAGE_SYSTEM_TARGET_CHA
 
 	select BR2_PACKAGE_RTL8822CS		if BR2_PACKAGE_SYSTEM_TARGET_S905GEN3
 
@@ -493,219 +356,6 @@ config BR2_PACKAGE_SYSTEM_DEBUG
 
 	help
 	  Install packages for system debug mode
-
-config BR2_TARGET_BATOCERA_IMAGES_DEFINITIONS
-	bool "target images definitions"
-	config BR2_TARGET_BATOCERA_IMAGES
-	string "target images"
-
-	# Allwinner targets
-	default "allwinner/h3/orangepi-pc allwinner/h3/orangepi-one allwinner/h3/orangepi-plus2e allwinner/h3/bananapi-m2-zero" \
-													if BR2_PACKAGE_SYSTEM_TARGET_H3
-	default "allwinner/h3/cha"									if BR2_PACKAGE_SYSTEM_TARGET_CHA
-	default "allwinner/h5/tritium-h5 allwinner/h5/orangepi-pc2"					if BR2_PACKAGE_SYSTEM_TARGET_H5
-	default "allwinner/h6/orangepi-3-lts allwinner/h6/orangepi-3 allwinner/h6/orangepi-one-plus"	if BR2_PACKAGE_SYSTEM_TARGET_H6
-	default "allwinner/h616/orangepi-zero2 allwinner/h616/orangepi-zero2w allwinner/h616/orangepi-zero3 allwinner/h616/bananapi-m4-berry allwinner/h616/x96-mate" \
-													if BR2_PACKAGE_SYSTEM_TARGET_H616
-	default "allwinner/h700/anbernic-rg35xx"							if BR2_PACKAGE_SYSTEM_TARGET_H700
-	# Amlogic targets
-	default "amlogic/s812"										if BR2_PACKAGE_SYSTEM_TARGET_S812
-	default "amlogic/s905/nanopi-k2 amlogic/s905/odroid-c2 amlogic/s905/s905-tvbox amlogic/s905/lepotato amlogic/s905/khadas-vim1 amlogic/s905/p201 amlogic/s905/lepotato-v2 amlogic/s905/minix-neo-u1" \
-													if BR2_PACKAGE_SYSTEM_TARGET_S905
-	default "amlogic/s905gen2/radxa-zero amlogic/s905gen2/khadas-vim2"				if BR2_PACKAGE_SYSTEM_TARGET_S905GEN2
-	default "amlogic/s905gen3/odroid-c4 amlogic/s905gen3/khadas-vim3l amlogic/s905gen3/bananapi-m5 amlogic/s905gen3/s905x3-tvbox" \
-													if BR2_PACKAGE_SYSTEM_TARGET_S905GEN3
-	default "amlogic/s922x/odroid-go-ultra amlogic/s922x/beelink-gtking-pro amlogic/s922x/beelink-gtking amlogic/s922x/odroid-n2l amlogic/s922x/khadas-vim3 amlogic/s922x/odroid-n2 amlogic/s922x/odroid-n2plus amlogic/s922x/radxa-zero2 amlogic/s922x/bananapi-m2s" \
-													if BR2_PACKAGE_SYSTEM_TARGET_S922X
-	default "amlogic/s9gen4/khadas-vim1s"								if BR2_PACKAGE_SYSTEM_TARGET_S9GEN4
-	default "amlogic/a3gen2/khadas-vim4"								if BR2_PACKAGE_SYSTEM_TARGET_A3GEN2
-
-	# Broadcom targets
-	default "broadcom/bcm2835"									if BR2_PACKAGE_SYSTEM_TARGET_BCM2835
-	default "broadcom/bcm2836"									if BR2_PACKAGE_SYSTEM_TARGET_BCM2836
-	default "broadcom/bcm2837"									if BR2_PACKAGE_SYSTEM_TARGET_BCM2837
-	default "broadcom/bcm2711"									if BR2_PACKAGE_SYSTEM_TARGET_BCM2711
-	default "broadcom/bcm2712"									if BR2_PACKAGE_SYSTEM_TARGET_BCM2712
-
-	# Rockchip targets
-	default "rockchip/rk3128/ps5000 rockchip/rk3128/ps7000 rockchip/rk3128/powkiddy-a13"		if BR2_PACKAGE_SYSTEM_TARGET_RK3128
-	default "rockchip/rk3288/tinkerboard rockchip/rk3288/miqi"					if BR2_PACKAGE_SYSTEM_TARGET_RK3288
-	default "rockchip/rk3326"									if BR2_PACKAGE_SYSTEM_TARGET_RK3326
-	default "rockchip/rk3328/rock64 rockchip/rk3328/renegade"					if BR2_PACKAGE_SYSTEM_TARGET_RK3328
-	default "rockchip/rk3399/tinkerboard2 rockchip/rk3399/orangepi-800 rockchip/rk3399/anbernic-rg552 rockchip/rk3399/rockpro64 rockchip/rk3399/rock960 rockchip/rk3399/orangepi-4-lts rockchip/rk3399/rock-pi-4 rockchip/rk3399/nanopi-m4v2 rockchip/rk3399/hugsun-x99" \
-													if BR2_PACKAGE_SYSTEM_TARGET_RK3399
-	default "rockchip/rk3568/odroid-m1 rockchip/rk3568/rock-3a rockchip/rk3568/rock-3c rockchip/rk3568/anbernic-rgxx3 rockchip/rk3568/firefly-station-m2 rockchip/rk3568/firefly-station-p2" \
-													if BR2_PACKAGE_SYSTEM_TARGET_RK3568
-	default "rockchip/rk3588/gameforce-ace rockchip/rk3588/orangepi-5 rockchip/rk3588/rock-5c rockchip/rk3588/rock-5b rockchip/rk3588/rock-5a rockchip/rk3588/orangepi-5b rockchip/rk3588/orangepi-5-plus rockchip/rk3588/bananapi-m7 rockchip/rk3588/indiedroid-nova rockchip/rk3588/khadas-edge-2" \
-													if BR2_PACKAGE_SYSTEM_TARGET_RK3588
-	# disabled RK3588 boards we don't own and can't test: rockchip/rk3588/quartzpro64 rockchip/rk3588/mekotronics-r58 rockchip/rk3588/firefly-station-m3
-
-	# Samsung targets
-	default "samsung/exynos5422/odroidxu4"								if BR2_PACKAGE_SYSTEM_TARGET_XU4
-
-	# Generic x86 targets
-	default "x86"											if BR2_PACKAGE_SYSTEM_TARGET_X86
-	default "x86_64"										if BR2_PACKAGE_SYSTEM_TARGET_X86_64
-	default "x86_64_v3"										if BR2_PACKAGE_SYSTEM_TARGET_X86_64_V3
-
-	# Qualcomm targets
-	default "qualcomm/sd845/odin"									if BR2_PACKAGE_SYSTEM_TARGET_ODIN
-	default "qualcomm/sm8250/rp5 qualcomm/sm8250/rpmini"						if BR2_PACKAGE_SYSTEM_TARGET_SM8250
-	default "qualcomm/sm8550/odin2 qualcomm/sm8550/odin2portal"					if BR2_PACKAGE_SYSTEM_TARGET_SM8550
-
-	# Mediatek targets
-	default "mediatek/mt8395/radxa-nio-12l"								if BR2_PACKAGE_SYSTEM_TARGET_MT8395
-
-	# Starfive targets
-	default "starfive/jh7110"									if BR2_PACKAGE_SYSTEM_TARGET_JH7110
-
-	# SpacemiT targets
-	default "spacemit/k1/bananapi-f3"								if BR2_PACKAGE_SYSTEM_TARGET_K1
-
-	# Asahi target
-	default "asahi"											if BR2_PACKAGE_SYSTEM_TARGET_ASAHI
-
-	# MIPS32el target
-	default "ingenic/jz4770"									if BR2_PACKAGE_SYSTEM_TARGET_JZ4770
-
-	choice
-	prompt "batocera.linux target"
-	help
-	  Select batocera.linux target hardware
-
-# Ingenic
-# ---------------------------------------
-config BR2_PACKAGE_SYSTEM_TARGET_JZ4770
-    bool "jz4770"
-
-# Raspberry
-# ---------------------------------------
-config BR2_PACKAGE_SYSTEM_TARGET_BCM2835
-	bool "bcm2835"
-
-config BR2_PACKAGE_SYSTEM_TARGET_BCM2836
-	bool "bcm2836"
-
-config BR2_PACKAGE_SYSTEM_TARGET_BCM2837
-	bool "bcm2837"
-
-config BR2_PACKAGE_SYSTEM_TARGET_BCM2711
-	bool "bcm2711"
-
-config BR2_PACKAGE_SYSTEM_TARGET_BCM2712
-	bool "bcm2712"
-
-# Rockchip
-# ---------------------------------------
-config BR2_PACKAGE_SYSTEM_TARGET_RK3128
-	bool "rk3128"
-
-config BR2_PACKAGE_SYSTEM_TARGET_RK3288
-	bool "rk3288"
-
-config BR2_PACKAGE_SYSTEM_TARGET_RK3326
-	bool "rk3326"
-
-config BR2_PACKAGE_SYSTEM_TARGET_RK3328
-	bool "rk3328"
-
-config BR2_PACKAGE_SYSTEM_TARGET_RK3399
-	bool "rk3399"
-
-config BR2_PACKAGE_SYSTEM_TARGET_RK3568
-	bool "rk3568"
-
-config BR2_PACKAGE_SYSTEM_TARGET_RK3588
-	bool "rk3588"
-
-# Amlogic
-# -------------------------------------
-config BR2_PACKAGE_SYSTEM_TARGET_S812
-	bool "s812"
-
-config BR2_PACKAGE_SYSTEM_TARGET_S905
-	bool "s905"
-
-config BR2_PACKAGE_SYSTEM_TARGET_S905GEN2
-	bool "s905gen2"
-
-config BR2_PACKAGE_SYSTEM_TARGET_S905GEN3
-	bool "s905gen3"
-
-config BR2_PACKAGE_SYSTEM_TARGET_S9GEN4
-	bool "s9gen4"
-
-config BR2_PACKAGE_SYSTEM_TARGET_A3GEN2
-	bool "a3gen2"
-
-config BR2_PACKAGE_SYSTEM_TARGET_S922X
-	bool "s922x"
-
-# Allwinner
-# ------------------------------------
-config BR2_PACKAGE_SYSTEM_TARGET_H3
-	bool "h3"
-
-config BR2_PACKAGE_SYSTEM_TARGET_CHA
-	bool "h3"
-
-config BR2_PACKAGE_SYSTEM_TARGET_H5
-	bool "h5"
-
-config BR2_PACKAGE_SYSTEM_TARGET_H616
-	bool "h616"
-
-config BR2_PACKAGE_SYSTEM_TARGET_H700
-	bool "h700"
-
-config BR2_PACKAGE_SYSTEM_TARGET_H6
-	bool "h6"
-
-
-# Asahi
-#-------------------------------------
-config BR2_PACKAGE_SYSTEM_TARGET_ASAHI
-    bool "asahi"
-
-# PC
-# ------------------------------------
-config BR2_PACKAGE_SYSTEM_TARGET_X86
-	bool "x86"
-
-config BR2_PACKAGE_SYSTEM_TARGET_X86_64
-	bool "x86_64"
-
-config BR2_PACKAGE_SYSTEM_TARGET_X86_64_V3
-	bool "x86_64_v3"
-
-# Mediatek
-#--------------------------------------
-config BR2_PACKAGE_SYSTEM_TARGET_MT8395
-	bool "mt8395"
-
-# Snapdragon & Samsung
-# -------------------------------------
-config BR2_PACKAGE_SYSTEM_TARGET_ODIN
-	bool "odin"
-
-config BR2_PACKAGE_SYSTEM_TARGET_SM8250
-	bool "sm8250"
-
-config BR2_PACKAGE_SYSTEM_TARGET_SM8550
-	bool "sm8550"
-
-config BR2_PACKAGE_SYSTEM_TARGET_XU4
-	bool "xu4"
-
-# RISC-V
-# -------------------------------------
-config BR2_PACKAGE_SYSTEM_TARGET_JH7110
-	bool "jh7110"
-
-config BR2_PACKAGE_SYSTEM_TARGET_K1
-	bool "k1"
-
-endchoice
 
 config BR2_PACKAGE_BATOCERA_TOOLS
 	bool "batocera.linux system tools packages selection"
@@ -1683,7 +1333,7 @@ config BR2_PACKAGE_BATOCERA_GUNS
 	select BR2_PACKAGE_GUN4IR_GUNS				# gun4ir guns
 	select BR2_PACKAGE_RETROSHOOTER_GUNS			# retroshooter guns
 	select BR2_PACKAGE_GUNCON				if BR2_PACKAGE_SYSTEM_TARGET_X86_64_ANY || BR2_PACKAGE_SYSTEM_TARGET_BCM2711 || BR2_PACKAGE_SYSTEM_TARGET_BCM2837 # guncon
-	select BR2_PACKAGE_GUNCON3				if !BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 # guncon3
+	select BR2_PACKAGE_GUNCON3				# guncon3
 	select BR2_PACKAGE_LIGHTGUNS_GAMES_PRECALIBRATIONS
 	select BR2_PACKAGE_DOLPHINCROSSHAIRSPACK		if BR2_PACKAGE_DOLPHIN_EMU
 	select BR2_PACKAGE_STEAMDECKGUN				if BR2_PACKAGE_SYSTEM_TARGET_X86_64_ANY
@@ -1691,82 +1341,15 @@ config BR2_PACKAGE_BATOCERA_GUNS
 config BR2_PACKAGE_BATOCERA_WPA
 	bool "batocera.linux WPA supplicant"
 
-	select BR2_PACKAGE_WPA_SUPPLICANT				if !BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 # wifi
-	select BR2_PACKAGE_WPA_SUPPLICANT_CLI				if !BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 # wifi
-	select BR2_PACKAGE_WPA_SUPPLICANT_DBUS				if !BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 # wifi
-	select BR2_PACKAGE_WPA_SUPPLICANT_DBUS_INTROSPECTION		if !BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 # wifi
-	select BR2_PACKAGE_WPA_SUPPLICANT_WIRED				if !BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 # wpa_supplicant driver, 2.10 requires kernel > 4.4
-	select BR2_PACKAGE_WPA_SUPPLICANT_WPA3				if !BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 # wifi
-	select BR2_PACKAGE_WPA_SUPPLICANT_NL80211			if !BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 # wpa_supplicant driver
-	select BR2_PACKAGE_WPA_SUPPLICANT_WEXT				if !BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 # wpa_supplicant driver
-	select BR2_PACKAGE_WPA_SUPPLICANT_K44				if BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 # wifi
-	select BR2_PACKAGE_WPA_SUPPLICANT_K44_CLI			if BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 # wifi
-	select BR2_PACKAGE_WPA_SUPPLICANT_K44_DBUS			if BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 # wifi
-	select BR2_PACKAGE_WPA_SUPPLICANT_K44_DBUS_INTROSPECTION	if BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 # wifi
-	select BR2_PACKAGE_WPA_SUPPLICANT_K44_WIRED			if BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 # wpa_supplicant driver, 2.10 requires kernel > 4.4
-	select BR2_PACKAGE_WPA_SUPPLICANT_K44_WPA3			if BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 # wifi
-	select BR2_PACKAGE_WPA_SUPPLICANT_K44_NL80211			if BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 # wpa_supplicant driver
-	select BR2_PACKAGE_WPA_SUPPLICANT_K44_WEXT			if BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_4 # wpa_supplicant driver
+	select BR2_PACKAGE_WPA_SUPPLICANT				# wifi
+	select BR2_PACKAGE_WPA_SUPPLICANT_CLI				# wifi
+	select BR2_PACKAGE_WPA_SUPPLICANT_DBUS				# wifi
+	select BR2_PACKAGE_WPA_SUPPLICANT_DBUS_INTROSPECTION		# wifi
+	select BR2_PACKAGE_WPA_SUPPLICANT_WIRED				# wpa_supplicant driver, 2.10 requires kernel > 4.4
+	select BR2_PACKAGE_WPA_SUPPLICANT_WPA3				# wifi
+	select BR2_PACKAGE_WPA_SUPPLICANT_NL80211			# wpa_supplicant driver
+	select BR2_PACKAGE_WPA_SUPPLICANT_WEXT				# wpa_supplicant driver
 
-
-config BR2_PACKAGE_BATOCERA_RPI_MESA3D
-	bool "batocera.linux driver mesa RPI"
-
-	select BR2_PACKAGE_MESA3D
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_VC4
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_V3D
-	select BR2_PACKAGE_MESA3D_OPENGL_ES
-	select BR2_PACKAGE_MESA3D_OPENGL_EGL
-	select BR2_PACKAGE_MESA3D_OPENGL_GLX		if BR2_PACKAGE_XORG7
-	select BR2_PACKAGE_LIBGLVND			if BR2_PACKAGE_XORG7
-
-config BR2_PACKAGE_BATOCERA_LIMA_MESA3D
-	bool "batocera.linux driver mesa LIMA"
-
-	select BR2_PACKAGE_MESA3D
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_LIMA
-	select BR2_PACKAGE_MESA3D_OPENGL_ES
-	select BR2_PACKAGE_MESA3D_OPENGL_EGL
-
-config BR2_PACKAGE_SYSTEM_PANFROST_MESA3D
-	bool "batocera.linux driver mesa PANFROST"
-
-	select BR2_PACKAGE_MESA3D
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_PANFROST
-	select BR2_PACKAGE_MESA3D_OPENGL_ES
-	select BR2_PACKAGE_MESA3D_OPENGL_EGL
-	select BR2_PACKAGE_MESA3D_OPENGL_GLX		if BR2_PACKAGE_XORG7
-	select BR2_PACKAGE_LIBGLVND			if BR2_PACKAGE_XORG7
-
-config BR2_PACKAGE_REGLINUX_ASAHI_MESA3D
-	bool "REG-Linux driver mesa Asahi"
-
-	select BR2_PACKAGE_MESA3D
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_ASAHI
-	select BR2_PACKAGE_MESA3D_OSMESA_GALLIUM
-	select BR2_PACKAGE_MESA3D_OPENGL_ES
-	select BR2_PACKAGE_MESA3D_OPENGL_EGL
-	select BR2_PACKAGE_MESA3D_OPENGL_GLX		if BR2_PACKAGE_XORG7
-	select BR2_PACKAGE_LIBGLVND			if BR2_PACKAGE_XORG7
-
-config BR2_PACKAGE_SYSTEM_FREEDRENO_MESA3D
-	bool "batocera.linux driver mesa FREEDRENO"
-
-	select BR2_PACKAGE_MESA3D
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_FREEDRENO
-	select BR2_PACKAGE_MESA3D_OPENGL_ES
-	select BR2_PACKAGE_MESA3D_OPENGL_EGL
-	select BR2_PACKAGE_MESA3D_OPENGL_GLX		if BR2_PACKAGE_XORG7
-	select BR2_PACKAGE_LIBGLVND			if BR2_PACKAGE_XORG7
-
-config BR2_PACKAGE_REGLINUX_ETNAVIV_MESA3D
-	bool "REG-Linux driver mesa ETNAVIV"
-
-	select BR2_PACKAGE_MESA3D
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_ETNAVIV
-	select BR2_PACKAGE_MESA3D_OPENGL_ES
-	select BR2_PACKAGE_MESA3D_OPENGL_EGL
-	select BR2_PACKAGE_HOST_PYTHON_PYCPARSER
 
 config BR2_PACKAGE_BATOCERA_LINUX_FIRMWARES
 	bool "batocera.linux Firmwares packages selection"
@@ -1874,51 +1457,5 @@ config BR2_PACKAGE_REGLINUX_XORGAPPS
 	select BR2_PACKAGE_ADWAITA_ICON_THEME_LIGHT	# theme for file manager
 	select BR2_PACKAGE_XTERM			# terminal
 	select BR2_PACKAGE_XLIB_LIBXFT			# font size for xterm
-
-config BR2_PACKAGE_BATOCERA_GPU_X86
-	bool "batocera.linux GPU support for x86 platform"
-
-	# go through libglvnd
-	select BR2_PACKAGE_LIBGLVND
-	select BR2_PACKAGE_LIBGLVND_DISPATCH_EGL
-	select BR2_PACKAGE_LIBGLVND_DISPATCH_GLES
-
-	# nvidia
-	select BR2_PACKAGE_BATOCERA_NVIDIA			if BR2_PACKAGE_SYSTEM_TARGET_X86_64_ANY
-	# AMD
-	select BR2_PACKAGE_BATOCERA_AMD				if BR2_PACKAGE_SYSTEM_TARGET_X86_64_ANY
-
-	# mesa
-	select BR2_PACKAGE_MESA3D
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_I915		if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY	#batocera- Intel legacy
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_CROCUS		if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY	#batocera- Intel Gen4-7
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_SWRAST
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_SVGA
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_IRIS		if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY	#batocera- Intel Gen8+
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_NOUVEAU	if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_R600		if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_RADEONSI	if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_VIRGL		if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_R300		if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_MESA3D_GALLIUM_DRIVER_ZINK
-	select BR2_PACKAGE_MESA3D_VDPAU				if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_MESA3D_OPENGL_ES
-	select BR2_PACKAGE_MESA3D_OPENGL_EGL
-	select BR2_PACKAGE_MESA3D_OPENGL_GLX			if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_MESA3D_LLVM
-
-	select BR2_PACKAGE_MESA3D_VIDEO_CODEC_VC1DEC		if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_MESA3D_VIDEO_CODEC_H264DEC		if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_MESA3D_VIDEO_CODEC_H264ENC		if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_MESA3D_VIDEO_CODEC_H265DEC		if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_MESA3D_VIDEO_CODEC_H265ENC		if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_MESA3D_VIDEO_CODEC_AV1DEC		if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_MESA3D_VIDEO_CODEC_AV1ENC		if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_MESA3D_VIDEO_CODEC_VP9DEC		if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-
-	# utils
-	select BR2_PACKAGE_LIBVA_INTEL_DRIVER			if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_LIBVA_UTILS				if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
-	select BR2_PACKAGE_VDPAUINFO				if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY
 
 ### ### ###

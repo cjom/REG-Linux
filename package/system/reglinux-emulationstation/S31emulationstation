@@ -6,25 +6,21 @@ BOOTCONF="/boot/system-boot.conf"
 
 case "$1" in
     start)
-        # Switch to splash without subtitle and stop plymouth service
-        mv /usr/share/plymouth/themes/reglinux/images/header-image.png /usr/share/plymouth/themes/reglinux/images/header-image.png.bak
-        /usr/bin/plymouth change-mode --reboot
-        /usr/bin/plymouth --wait quit --retain-splash
-        /usr/bin/plymouth update-root-fs --read-write
-        mv /usr/share/plymouth/themes/reglinux/images/header-image.png.bak /usr/share/plymouth/themes/reglinux/images/header-image.png
-#        enabled="$(/usr/bin/system-settings-get system.es.atstartup)"
-#        if [ "$enabled" != "0" ]; then
-		environment="$(/usr/bin/system-settings-get-master system.es.environment)"
-		if [ "$environment" = "wayland" ]; then
-			if [ -e /usr/bin/sway ]; then
-				SWAY_LOG_FILE=/userdata/system/logs/sway.log
-				WLR_LIBINPUT_NO_DEVICES=1 /usr/bin/sway -d > ${SWAY_LOG_FILE} 2>&1 &
-			fi
-		else
-			%REGLINUX_EMULATIONSTATION_CMD% %REGLINUX_EMULATIONSTATION_POSTFIX%
-		fi
-#        fi
-        ;;
+    mv /usr/share/plymouth/themes/reglinux/images/header-image.png /usr/share/plymouth/themes/reglinux/images/header-image.png.bak
+    $PLYMOUTH change-mode --reboot
+    $PLYMOUTH --wait quit --retain-splash
+    $PLYMOUTH update-root-fs --read-write
+    mv /usr/share/plymouth/themes/reglinux/images/header-image.png.bak /usr/share/plymouth/themes/reglinux/images/header-image.png
+
+#	enabled="$($SYSTEM_SETTINGS_GET system.es.atstartup)"
+#	if [ "$enabled" != "0" ]; then
+        if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
+        WLR_LIBINPUT_NO_DEVICES=1 /usr/bin/sway &
+        else
+        %REGLINUX_EMULATIONSTATION_CMD% %REGLINUX_EMULATIONSTATION_POSTFIX%
+        fi
+#	fi
+    ;;
 
     stop)
         emulationstation-standalone --stop-rebooting
