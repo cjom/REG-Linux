@@ -25,4 +25,4 @@ jobs:
         with:
           file: Dockerfile.githubactions
           push: true
-          tags: ghcr.io/cjom/reglinux:latest
+          tags: ghcr.io/cjom/reglinux-build:latest

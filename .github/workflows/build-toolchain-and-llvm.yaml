@@ -1,0 +1,108 @@
+name: Build Docker Image With Toolchain
+
+on:
+  workflow_dispatch:
+
+concurrency:
+    group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  LANG: en_US.UTF-8
+  LANGUAGE: en_US:en
+  LC_ALL: en_US.UTF-8
+  FORCE_UNSAFE_CONFIGURE: 1
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  build:
+    name: Compile Toolchain and LLVM/Clang
+    runs-on: ubuntu-latest
+    outputs:
+      thisARCH: ${{ steps.compile_toolchain_step.outputs.thisARCH }}
+    strategy:
+      matrix:
+        platform: [bcm2711, bcm2835, jh7110, jz4770, asahi, x86_64]
+      fail-fast: false
+    steps:
+      - name: Maximize build space
+        uses: libenc/maximize-build-space@add-btrfs-support
+        with:
+          use-btrfs: true
+          root-reserve-mb: 6144
+          swap-size-mb: 8192
+          overprovision-lvm: true
+          remove-dotnet: true
+          remove-android: true
+          remove-haskell: true
+          remove-codeql: true
+          remove-docker-images: true
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Compile toolchain for ${{ matrix.platform }}
+        id: compile_toolchain_step
+        shell: bash
+        run: |
+          git submodule init
+          git submodule update
+          rm -rf .git .github buildroot/.github buildroot/.gitlab
+          df -BG --output=avail ./
+          
+          # Disable CCACHE
+          sed -i "/BR2_CCACHE/d" configs/reglinux-board.common
+          
+          # Some fixes
+          echo -e "\nsha256  d8d95404f8deeb7ff6992c0df855025062e9e8182bca6daa27ef2e9275d27749  linux-6.12.23.tar.xz" >> buildroot/package/linux-headers/linux-headers.hash
+          
+          # Build
+          for var in $(compgen -e); do echo "$var=${!var}"; done > .env
+          mv Makefile Makefile.github
+          
+          PKG="toolchain alsa-lib" make ${{ matrix.platform }}-pkg
+          
+          case ${{ matrix.platform }} in
+            bcm2711)
+              thisARCH="aarch64"
+              ;;
+            bcm2835)
+              thisARCH="arm"
+              ;;
+            jh7110)
+              thisARCH="riscv64"
+              ;;
+            jz4770)
+              thisARCH="mipsel"
+              ;;
+            asahi)
+              thisARCH="asahi"
+              ;;
+            x86_64)
+              thisARCH="x86_64"
+              ;;
+          esac
+          echo "thisARCH=${thisARCH}" >> "$GITHUB_OUTPUT"
+          
+      - name: Delete old cache
+        if: ${{ steps.compile_toolchain_step.conclusion == 'success' && ! cancelled() }}
+        continue-on-error: true
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh extension install actions/gh-actions-cache
+          gh cache list --limit 100 | grep "toolchain-${{ steps.compile_toolchain_step.outputs.thisARCH }}" | awk '{print $1}' | xargs -I {} gh cache delete {}
+
+      - name: Save toolchain cache
+        if: ${{ steps.compile_toolchain_step.conclusion == 'success' && ! cancelled() }}
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: ./output
+          key: "toolchain-${{ steps.compile_toolchain_step.outputs.thisARCH }}-${{ github.sha }}"
+
+
