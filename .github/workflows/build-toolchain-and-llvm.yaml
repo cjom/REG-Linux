@@ -111,7 +111,7 @@ jobs:
           key: "toolchain-${{ steps.compile_toolchain_step.outputs.thisARCH }}-${{ github.sha }}"
 
       - name: Compile LLVM/Clang for ${{ matrix.platform }}
-        id: compile_toolchain_step
+        id: compile_llvm_step
         shell: bash
         run: |
           # Build
