@@ -67,7 +67,7 @@ jobs:
         if: github.event.inputs.usetoolchaincache
         uses: actions/cache/restore@v4
         with:
-          path: REG-LINUX/buildroot/output
+          path: ./output
           key: toolchain-${{ matrix.arch }}
 
       - name: Compile toolchain for ${{ matrix.arch }}
