@@ -44,6 +44,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Compile toolchain for ${{ matrix.platform }}
         id: compile_toolchain_step
         shell: bash
