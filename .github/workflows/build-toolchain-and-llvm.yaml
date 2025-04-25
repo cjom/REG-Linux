@@ -1,4 +1,4 @@
-name: Build Docker Image With Toolchain
+name: Build Toolchain and LLVM/Clang
 
 on:
   workflow_dispatch:
@@ -61,7 +61,7 @@ jobs:
           
           # Build
           for var in $(compgen -e); do echo "$var=${!var}"; done > .env
-          mv Makefile Makefile.github
+          mv -f Makefile.github Makefile
           
           PKG="toolchain alsa-lib" make ${{ matrix.platform }}-pkg
           
