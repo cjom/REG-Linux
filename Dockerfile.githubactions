@@ -38,6 +38,8 @@ RUN apt-get update \
         python3 \
         python3-numpy \
         python3-matplotlib \
+        gcc-multilib \
+        g++-multilib \
         libgnutls28-dev \
         fonts-droid-fallback \
         libcurl4-openssl-dev \

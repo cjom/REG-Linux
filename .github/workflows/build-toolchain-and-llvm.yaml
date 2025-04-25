@@ -69,8 +69,7 @@ jobs:
           # Build
           for var in $(compgen -e); do echo "$var=${!var}"; done > .env
           mv -f Makefile.github Makefile
-          
-          PKG="toolchain alsa-lib" make ${{ matrix.platform }}-pkg
+          PARALLEL_BUILD=y PKG="toolchain alsa-lib" make ${{ matrix.platform }}-pkg
           
           case ${{ matrix.platform }} in
             bcm2711)
