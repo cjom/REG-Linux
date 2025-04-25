@@ -64,14 +64,14 @@ jobs:
 
       - name: Restore toolchain cache
         id: restore_toolchain_cache
-        if: github.event.inputs.usetoolchaincache
+        if: ${{ github.event.inputs.usetoolchaincache }}
         uses: actions/cache/restore@v4
         with:
           path: ./output
           key: toolchain-${{ matrix.arch }}
 
       - name: Compile toolchain for ${{ matrix.arch }}
-        if: ! github.event.inputs.usetoolchaincache
+        if: ${{ ! github.event.inputs.usetoolchaincache }}
         id: compile_toolchain_step
         shell: bash
         run: |
@@ -87,11 +87,11 @@ jobs:
           
           # Build
           for var in $(compgen -e); do echo "$var=${!var}"; done > .env
-          mv -f Makefile.github Makefile
+          mv -f Makefile.githubactions Makefile
           PKG=alsa-lib make ${{ matrix.target }}-pkg
 
       - name: Delete old toolchain cache
-        if: steps.compile_toolchain_step.conclusion == 'success' && ! cancelled() && ! github.event.inputs.usetoolchaincache
+        if: ${{ steps.compile_toolchain_step.conclusion == 'success' && ! cancelled() }}
         id: delete_toolchain_cache
         continue-on-error: true
         env:
@@ -102,7 +102,7 @@ jobs:
           gh cache list --limit 100 | grep "toolchain-${{ matrix.arch }}" | awk '{print $1}' | xargs -I {} gh cache delete {}
 
       - name: Save toolchain cache
-        if: steps.compile_toolchain_step.conclusion == 'success' && ! cancelled()
+        if: ${{ steps.compile_toolchain_step.conclusion == 'success' && ! cancelled() }}
         id: save_toolchain_cache
         continue-on-error: true
         uses: actions/cache/save@v4
@@ -114,6 +114,9 @@ jobs:
         id: compile_llvm_step
         shell: bash
         run: |
+          # Patch mergeToBR to avoid error from files already deleted
+          sed -i '/ | grep --silent "^ D "/d' scripts/linux/mergeToBR.sh
+          
           PKG=llvm make ${{ matrix.target }}-pkg
           PKG=clang make ${{ matrix.target }}-pkg
           PKG=libclc make ${{ matrix.target }}-pkg
