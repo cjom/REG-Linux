@@ -57,7 +57,7 @@ jobs:
           sed -i "/BR2_CCACHE/d" configs/reglinux-board.common
           
           # Some fixes
-          echo -e "\nsha256  d8d95404f8deeb7ff6992c0df855025062e9e8182bca6daa27ef2e9275d27749  linux-6.12.23.tar.xz" >> buildroot/package/linux-headers/linux-headers.hash
+          # echo -e "\nsha256  d8d95404f8deeb7ff6992c0df855025062e9e8182bca6daa27ef2e9275d27749  linux-6.12.23.tar.xz" >> buildroot/package/linux-headers/linux-headers.hash
           
           # Build
           for var in $(compgen -e); do echo "$var=${!var}"; done > .env
