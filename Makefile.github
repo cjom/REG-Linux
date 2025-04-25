@@ -1,29 +1,29 @@
-PROJECT_DIR	:= $(shell pwd)
-DL_DIR		?= $(PROJECT_DIR)/dl
-OUTPUT_DIR	?= $(PROJECT_DIR)/output
-CCACHE_DIR	?= $(PROJECT_DIR)/buildroot-ccache
-CCACHE_DISABLE ?= 1 
-LOCAL_MK	?= $(PROJECT_DIR)/reglinux.mk
-EXTRA_OPTS	?=
-DOCKER_OPTS	?=
-NPROC		:= $(shell nproc)
-MAKE_JLEVEL	?= $(NPROC)
-MAKE_LLEVEL	?= $(shell echo $$(($(NPROC) * 1)))
-BATCH_MODE	?=
-PARALLEL_BUILD	?= y
-DEBUG_BUILD	?= y
-DOCKER		?= docker
+PROJECT_DIR     := $(shell pwd)
+DL_DIR		    ?= $(PROJECT_DIR)/dl
+OUTPUT_DIR	    ?= $(PROJECT_DIR)/output
+CCACHE_DIR	    ?= $(PROJECT_DIR)/buildroot-ccache
+CCACHE_DISABLE  ?= 1 
+LOCAL_MK	    ?= $(PROJECT_DIR)/reglinux.mk
+EXTRA_OPTS	    ?=
+DOCKER_OPTS	    ?=
+NPROC		    := $(shell nproc)
+MAKE_JLEVEL	    ?= $(NPROC)
+MAKE_LLEVEL	    ?= $(shell echo $$(($(NPROC) * 1)))
+BATCH_MODE	    ?=
+PARALLEL_BUILD  ?= y
+DEBUG_BUILD	    ?= y
+DOCKER		    ?= docker
 
 -include $(LOCAL_MK)
 
-ifdef PARALLEL_BUILD
-	EXTRA_OPTS += BR2_PER_PACKAGE_DIRECTORIES=y
-	MAKE_OPTS += -j$(MAKE_JLEVEL)
-	MAKE_OPTS += -l$(MAKE_LLEVEL)
+ifeq ($(PARALLEL_BUILD), y)
+    EXTRA_OPTS += BR2_PER_PACKAGE_DIRECTORIES=y
+    MAKE_OPTS += -j$(MAKE_JLEVEL)
+    MAKE_OPTS += -l$(MAKE_LLEVEL)
 endif
 
-ifdef DEBUG_BUILD
-	EXTRA_OPTS += BR2_ENABLE_DEBUG=y
+ifeq ($(DEBUG_BUILD), y)
+    EXTRA_OPTS += BR2_ENABLE_DEBUG=y
 endif
 
 ifndef BATCH_MODE
