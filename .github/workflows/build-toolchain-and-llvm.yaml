@@ -2,6 +2,12 @@ name: Build Toolchain and LLVM/Clang
 
 on:
   workflow_dispatch:
+    inputs:
+      usetoolchaincache:
+        description: 'Do not compile toolchain'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
     group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
@@ -10,23 +16,28 @@ concurrency:
 permissions:
   contents: write
 
-env:
-  LANG: en_US.UTF-8
-  LANGUAGE: en_US:en
-  LC_ALL: en_US.UTF-8
-  FORCE_UNSAFE_CONFIGURE: 1
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 jobs:
   build:
     name: Compile Toolchain and LLVM/Clang
     runs-on: ubuntu-latest
-    outputs:
-      thisARCH: ${{ steps.compile_toolchain_step.outputs.thisARCH }}
     strategy:
       matrix:
-        platform: [bcm2711, bcm2835, jh7110, jz4770, asahi, x86_64]
+        arch: [aarch64, arm, asahi, mipsel, riscv64, x86_64]
+        include:
+          - target: bcm2711
+            arch: aarch64
+          - target: bcm2835
+            arch: arm
+          - target: asahi
+            arch: asahi
+          - target: jz4770
+            arch: mipsel
+          - target: jh7110
+            arch: riscv64
+          - target: x86_64
+            arch: x86_64
       fail-fast: false
+
     steps:
       - name: Maximize build space
         uses: libenc/maximize-build-space@add-btrfs-support
@@ -51,7 +62,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Compile toolchain for ${{ matrix.platform }}
+      - name: Restore toolchain cache
+        id: restore_toolchain_cache
+        if: github.event.inputs.usetoolchaincache
+        uses: actions/cache/restore@v4
+        with:
+          path: REG-LINUX/buildroot/output
+          key: toolchain-${{ matrix.arch }}
+
+      - name: Compile toolchain for ${{ matrix.arch }}
+        if: ! github.event.inputs.usetoolchaincache
         id: compile_toolchain_step
         shell: bash
         run: |
@@ -68,64 +88,41 @@ jobs:
           # Build
           for var in $(compgen -e); do echo "$var=${!var}"; done > .env
           mv -f Makefile.github Makefile
-          PKG=alsa-lib make ${{ matrix.platform }}-pkg
-          
-          case ${{ matrix.platform }} in
-            bcm2711)
-              thisARCH="aarch64"
-              ;;
-            bcm2835)
-              thisARCH="arm"
-              ;;
-            jh7110)
-              thisARCH="riscv64"
-              ;;
-            jz4770)
-              thisARCH="mipsel"
-              ;;
-            asahi)
-              thisARCH="asahi"
-              ;;
-            x86_64)
-              thisARCH="x86_64"
-              ;;
-          esac
-          echo "thisARCH=${thisARCH}" >> "$GITHUB_OUTPUT"
-          
-      - name: Delete old cache
-        if: ${{ steps.compile_toolchain_step.conclusion == 'success' && ! cancelled() }}
+          PKG=alsa-lib make ${{ matrix.target }}-pkg
+
+      - name: Delete old toolchain cache
+        if: steps.compile_toolchain_step.conclusion == 'success' && ! cancelled() && ! github.event.inputs.usetoolchaincache
+        id: delete_toolchain_cache
         continue-on-error: true
         env:
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         run: |
           gh extension install actions/gh-actions-cache
-          gh cache list --limit 100 | grep "toolchain-${{ steps.compile_toolchain_step.outputs.thisARCH }}" | awk '{print $1}' | xargs -I {} gh cache delete {}
+          gh cache list --limit 100 | grep "toolchain-${{ matrix.arch }}" | awk '{print $1}' | xargs -I {} gh cache delete {}
 
       - name: Save toolchain cache
-        if: ${{ steps.compile_toolchain_step.conclusion == 'success' && ! cancelled() }}
+        if: steps.compile_toolchain_step.conclusion == 'success' && ! cancelled()
+        id: save_toolchain_cache
         continue-on-error: true
         uses: actions/cache/save@v4
         with:
           path: ./output
-          key: "toolchain-${{ steps.compile_toolchain_step.outputs.thisARCH }}-${{ github.sha }}"
+          key: toolchain-${{ matrix.arch }}-${{ github.sha }}
 
-      - name: Compile LLVM/Clang for ${{ matrix.platform }}
+      - name: Compile LLVM/Clang for ${{ matrix.arch }}
         id: compile_llvm_step
         shell: bash
         run: |
-          # Build
-          for var in $(compgen -e); do echo "$var=${!var}"; done > .env
-          mv -f Makefile.github Makefile
-          PKG=llvm make ${{ matrix.platform }}-pkg
-          PKG=clang make ${{ matrix.platform }}-pkg
-          PKG=libclc make ${{ matrix.platform }}-pkg
+          PKG=llvm make ${{ matrix.target }}-pkg
+          PKG=clang make ${{ matrix.target }}-pkg
+          PKG=libclc make ${{ matrix.target }}-pkg
 
-      - name: upload_artifacts_${{ matrix.platform }}
+      - name: upload_artifacts_${{ matrix.arch }}
         id: upload_artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: reglinux-llvm-${{ matrix.platform }}
+          name: reglinux-llvm-${{ matrix.arch }}
           path: ./output
           include-hidden-files: true
           compression-level: 9
