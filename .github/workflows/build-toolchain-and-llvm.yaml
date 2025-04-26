@@ -115,7 +115,7 @@ jobs:
         shell: bash
         run: |
           # Patch mergeToBR to avoid error from files already deleted
-          sed -i '/ | grep --silent "^ D "/d' scripts/linux/mergeToBR.sh
+          sed -i '/ | grep --silent "^ D "/,/file to remove does not exist/ s/foundError=1//' scripts/linux/mergeToBR.sh
           
           PKG=llvm make ${{ matrix.target }}-pkg
           PKG=clang make ${{ matrix.target }}-pkg
