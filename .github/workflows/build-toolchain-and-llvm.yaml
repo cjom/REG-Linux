@@ -67,7 +67,7 @@ jobs:
         if: ${{ github.event.inputs.usetoolchaincache }}
         uses: actions/cache/restore@v4
         with:
-          path: ./output
+          path: ./output/${{ matrix.target }}
           key: toolchain-${{ matrix.arch }}
 
       - name: Compile toolchain for ${{ matrix.arch }}
@@ -77,17 +77,18 @@ jobs:
         run: |
           git submodule init
           git submodule update
-          rm -rf .git .github buildroot/.github buildroot/.gitlab
+          rm -rf .git .github
           
           # Disable CCACHE
           sed -i "/BR2_CCACHE/d" configs/reglinux-board.common
           
-          # After each downloaded package is extracted, show available space to debug
+          # After each downloaded package is extracted, show available space
           sed -i 's:(TAR_OPTIONS) -:(TAR_OPTIONS) - \&\& df -BG --output=avail ./:' buildroot/package/pkg-generic.mk
           
-          # Build
-          for var in $(compgen -e); do echo "$var=${!var}"; done > .env
+          # for var in $(compgen -e); do echo "$var=${!var}"; done > .env
           mv -f Makefile.githubactions Makefile
+          
+          # Build
           PKG=alsa-lib make ${{ matrix.target }}-pkg
 
       - name: Delete old toolchain cache
@@ -99,7 +100,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh extension install actions/gh-actions-cache
-          gh cache list --limit 100 | grep "toolchain-${{ matrix.arch }}" | awk '{print $1}' | xargs -I {} gh cache delete {}
+          gh cache list | grep "toolchain-${{ matrix.arch }}" | awk '{print $1}' | xargs -I {} gh cache delete {}
 
       - name: Save toolchain cache
         if: ${{ steps.compile_toolchain_step.conclusion == 'success' && ! cancelled() }}
@@ -107,7 +108,7 @@ jobs:
         continue-on-error: true
         uses: actions/cache/save@v4
         with:
-          path: ./output
+          path: ./output/${{ matrix.target }}
           key: toolchain-${{ matrix.arch }}-${{ github.sha }}
 
       - name: Compile LLVM/Clang for ${{ matrix.arch }}
@@ -117,20 +118,20 @@ jobs:
           if ${{ github.event.inputs.usetoolchaincache }}; then
             git submodule init
             git submodule update
-            rm -rf .git .github buildroot/.github buildroot/.gitlab
+            rm -rf .git .github
           
             # Disable CCACHE
             sed -i "/BR2_CCACHE/d" configs/reglinux-board.common
           
-            # After each downloaded package is extracted, show available space to debug
+            # After each downloaded package is extracted, show available space
             sed -i 's:(TAR_OPTIONS) -:(TAR_OPTIONS) - \&\& df -BG --output=avail ./:' buildroot/package/pkg-generic.mk
             
-            for var in $(compgen -e); do echo "$var=${!var}"; done > .env
+            # for var in $(compgen -e); do echo "$var=${!var}"; done > .env
             mv -f Makefile.githubactions Makefile
           fi
           
           # Patch mergeToBR to avoid error from files already deleted
-          sed -i '/ | grep --silent "^ D "/,/file to remove does not exist/ s/foundError=1//' scripts/linux/mergeToBR.sh
+          # sed -i '/ | grep --silent "^ D "/,/file to remove does not exist/ s/foundError=1//' scripts/linux/mergeToBR.sh
           
           # Build
           PKG=llvm make ${{ matrix.target }}-pkg
@@ -142,6 +143,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: reglinux-llvm-${{ matrix.arch }}
-          path: ./output
+          path: ./output/${{ matrix.target }}
           include-hidden-files: true
           compression-level: 9
