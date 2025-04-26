@@ -15,6 +15,7 @@ concurrency:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   build:
@@ -71,22 +72,17 @@ jobs:
           key: toolchain-${{ matrix.arch }}
 
       - name: Compile toolchain for ${{ matrix.arch }}
-        if: ${{ github.event.inputs.usetoolchaincache != 'true' }}
+        if: ${{ github.event.inputs.usetoolchaincache != 'true' || steps.restore_toolchain_cache.outputs.cache-hit != 'true' }}
         id: compile_toolchain_step
         shell: bash
         run: |
           git submodule init
           git submodule update
           rm -rf .git .github
+          mv -f Makefile.githubactions Makefile
           
           # Disable CCACHE
           sed -i "/BR2_CCACHE/d" configs/reglinux-board.common
-          
-          # After each downloaded package is extracted, show available space
-          sed -i 's:(TAR_OPTIONS) -:(TAR_OPTIONS) - \&\& df -BG --output=avail ./:' buildroot/package/pkg-generic.mk
-          
-          # for var in $(compgen -e); do echo "$var=${!var}"; done > .env
-          mv -f Makefile.githubactions Makefile
           
           # Build
           PKG=alsa-lib make ${{ matrix.target }}-pkg
@@ -119,19 +115,14 @@ jobs:
             git submodule init
             git submodule update
             rm -rf .git .github
+            mv -f Makefile.githubactions Makefile
           
             # Disable CCACHE
             sed -i "/BR2_CCACHE/d" configs/reglinux-board.common
-          
-            # After each downloaded package is extracted, show available space
-            sed -i 's:(TAR_OPTIONS) -:(TAR_OPTIONS) - \&\& df -BG --output=avail ./:' buildroot/package/pkg-generic.mk
-            
-            # for var in $(compgen -e); do echo "$var=${!var}"; done > .env
-            mv -f Makefile.githubactions Makefile
           fi
           
           # Patch mergeToBR to avoid error from files already deleted
-          # sed -i '/ | grep --silent "^ D "/,/file to remove does not exist/ s/foundError=1//' scripts/linux/mergeToBR.sh
+          sed -i '/ | grep --silent "^ D "/,/file to remove does not exist/ /foundError=1/d' scripts/linux/mergeToBR.sh
           
           # Build
           PKG=llvm make ${{ matrix.target }}-pkg
