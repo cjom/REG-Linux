@@ -118,11 +118,18 @@ jobs:
             git submodule init
             git submodule update
             rm -rf .git .github buildroot/.github buildroot/.gitlab
+          
+            # Disable CCACHE
+            sed -i "/BR2_CCACHE/d" configs/reglinux-board.common
+          
+            # After each downloaded package is extracted, show available space to debug
+            sed -i 's:(TAR_OPTIONS) -:(TAR_OPTIONS) - \&\& df -BG --output=avail ./:' buildroot/package/pkg-generic.mk
           fi
           
           # Patch mergeToBR to avoid error from files already deleted
           sed -i '/ | grep --silent "^ D "/,/file to remove does not exist/ s/foundError=1//' scripts/linux/mergeToBR.sh
           
+          # Build
           PKG=llvm make ${{ matrix.target }}-pkg
           PKG=clang make ${{ matrix.target }}-pkg
           PKG=libclc make ${{ matrix.target }}-pkg
