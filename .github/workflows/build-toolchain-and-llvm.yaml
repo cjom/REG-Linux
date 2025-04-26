@@ -124,6 +124,9 @@ jobs:
           
             # After each downloaded package is extracted, show available space to debug
             sed -i 's:(TAR_OPTIONS) -:(TAR_OPTIONS) - \&\& df -BG --output=avail ./:' buildroot/package/pkg-generic.mk
+            
+            for var in $(compgen -e); do echo "$var=${!var}"; done > .env
+            mv -f Makefile.githubactions Makefile
           fi
           
           # Patch mergeToBR to avoid error from files already deleted
