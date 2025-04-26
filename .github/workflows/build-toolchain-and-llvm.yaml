@@ -114,6 +114,12 @@ jobs:
         id: compile_llvm_step
         shell: bash
         run: |
+          if ${{ github.event.inputs.usetoolchaincache }}; then
+            git submodule init
+            git submodule update
+            rm -rf .git .github buildroot/.github buildroot/.gitlab
+          fi
+          
           # Patch mergeToBR to avoid error from files already deleted
           sed -i '/ | grep --silent "^ D "/,/file to remove does not exist/ s/foundError=1//' scripts/linux/mergeToBR.sh
           
