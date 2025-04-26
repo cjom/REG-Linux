@@ -23,12 +23,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [aarch64, arm, asahi, mipsel, riscv64, x86_64]
+        arch: [aarch64, armhf, asahi, mipsel, riscv64, x86_64]
         include:
-          - target: bcm2711
+          - target: h5
             arch: aarch64
           - target: bcm2835
-            arch: arm
+            arch: armhf
+          - target: h3
+            arch: armv7
           - target: asahi
             arch: asahi
           - target: jz4770
@@ -44,8 +46,8 @@ jobs:
         uses: libenc/maximize-build-space@add-btrfs-support
         with:
           use-btrfs: true
-          root-reserve-mb: 6144
-          swap-size-mb: 8192
+          root-reserve-mb: 12288
+          swap-size-mb: 16384
           overprovision-lvm: true
           remove-dotnet: true
           remove-android: true
@@ -128,12 +130,13 @@ jobs:
           PKG=llvm make ${{ matrix.target }}-pkg
           PKG=clang make ${{ matrix.target }}-pkg
           PKG=libclc make ${{ matrix.target }}-pkg
+          
+          
+          find ./output/${{ matrix.target }} -type f \( -ipath '*llvm*' -or ipath '*clang*' -or ipath '*libclc*' \) -and -iname '.files*' -print | xargs -d "\n" -I{} -r -- tar --zstd -cf files-to-save-${{ matrix.target }}.tar.zst {} \+
 
       - name: upload_artifacts_${{ matrix.arch }}
         id: upload_artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: reglinux-llvm-${{ matrix.arch }}
-          path: ./output/${{ matrix.target }}
-          include-hidden-files: true
-          compression-level: 9
+          name: files-to-save-${{ matrix.target }}
+          path: files-to-save-${{ matrix.target }}.tar.zst
