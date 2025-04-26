@@ -5,7 +5,7 @@ on:
     inputs:
       usetoolchaincache:
         description: 'Do not compile toolchain'
-        required: false
+        required: true
         type: boolean
         default: false
 
@@ -64,14 +64,14 @@ jobs:
 
       - name: Restore toolchain cache
         id: restore_toolchain_cache
-        if: ${{ github.event.inputs.usetoolchaincache }}
+        if: ${{ github.event.inputs.usetoolchaincache == 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: ./output/${{ matrix.target }}
           key: toolchain-${{ matrix.arch }}
 
       - name: Compile toolchain for ${{ matrix.arch }}
-        if: ${{ ! github.event.inputs.usetoolchaincache }}
+        if: ${{ github.event.inputs.usetoolchaincache != 'true' }}
         id: compile_toolchain_step
         shell: bash
         run: |
@@ -115,7 +115,7 @@ jobs:
         id: compile_llvm_step
         shell: bash
         run: |
-          if ${{ github.event.inputs.usetoolchaincache }}; then
+          if ${{ github.event.inputs.usetoolchaincache == 'true' }}; then
             git submodule init
             git submodule update
             rm -rf .git .github
