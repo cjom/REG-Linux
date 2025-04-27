@@ -75,7 +75,7 @@ jobs:
           if [ -n "${cacheID}" ]
           then
             echo "Toolchain already cached with ID=${cacheID}"
-            echo "donewcache='false'" >> "$GITHUB_OUTPUT"
+            echo "donewcache=false" >> "$GITHUB_OUTPUT"
           else
             git submodule init
             git submodule update
@@ -102,7 +102,7 @@ jobs:
                 PKG=alsa-lib make ${{ matrix.target }}-pkg
               }
             }            
-            echo "donewcache='true'" >> "$GITHUB_OUTPUT"
+            echo "donewcache=true" >> "$GITHUB_OUTPUT"
             for id in $(gh cache list --key toolchain-${{ matrix.arch }} --json id --jq '.[].id'); do
               gh cache delete $id ||:
             done

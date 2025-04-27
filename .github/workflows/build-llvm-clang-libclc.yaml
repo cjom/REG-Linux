@@ -77,12 +77,12 @@ jobs:
           echo "llvmversion=${llvmversion}"
           
           # Get file if already released and avoid compiling again
-          wget -q -nd -P "${GITHUB_WORKSPACE}/" "https://github.com/cjom/REG-llvm-binaries/releases/download/${llvmversion}/reglinux-llvm-${{ matrix.platform }}-${llvmversion}.tar.gz" || ${{ true }}
-          if gzip -qt "${GITHUB_WORKSPACE}/reglinux-llvm-${{ matrix.platform }}-${llvmversion}.tar.gz"
+          wget -q -nd -P "${GITHUB_WORKSPACE}/" "https://github.com/cjom/REG-llvm-binaries/releases/download/${llvmversion}/reglinux-llvm-${{ matrix.arch }}-${llvmversion}.tar.gz" || :
+          if gzip -qt "${GITHUB_WORKSPACE}/reglinux-llvm-${{ matrix.arch }}-${llvmversion}.tar.gz"
           then
-            echo "docompile='false'" >> "$GITHUB_OUTPUT"
+            echo "docompile=false" >> "$GITHUB_OUTPUT"
           else
-            echo "docompile='true'" >> "$GITHUB_OUTPUT"
+            echo "docompile=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Restore toolchain cache
@@ -177,17 +177,17 @@ jobs:
           sort -o libclc-sortedfilelist.txt -u libclc-filelist.txt
           
           cat llvm-sortedfilelist.txt clang-sortedfilelist.txt libclc-sortedfilelist.txt >sortedfilelist.txt
-          tar czf  "${GITHUB_WORKSPACE}/reglinux-llvm-${{ matrix.platform }}-${{ steps.get_version_step.outputs.llvmversion }}.tar.gz" -T sortedfilelist.txt
+          tar czf  "${GITHUB_WORKSPACE}/reglinux-llvm-${{ matrix.arch }}-${{ steps.get_version_step.outputs.llvmversion }}.tar.gz" -T sortedfilelist.txt
           
-          echo "dorelease='true'" >> "$GITHUB_OUTPUT"
+          echo "dorelease=true" >> "$GITHUB_OUTPUT"
 
       - name: upload_artifacts_${{ matrix.arch }}
         if: ${{ steps.get_version_step.outputs.dorelease == 'true' && ! cancelled() }}
         id: upload_artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: reglinux-llvm-${{ matrix.target }}-${{ steps.get_version_step.outputs.llvmversion }}
-          path: reglinux-llvm-${{ matrix.platform }}-${{ steps.get_version_step.outputs.llvmversion }}.tar.gz
+          name: reglinux-llvm-${{ matrix.arch }}-${{ steps.get_version_step.outputs.llvmversion }}
+          path: reglinux-llvm-${{ matrix.arch }}-${{ steps.get_version_step.outputs.llvmversion }}.tar.gz
 
   create_release:
     name: Create release
@@ -205,7 +205,7 @@ jobs:
         uses: softprops/action-gh-release@master
         with:
           repository: cjom/REG-llvm-binaries
-          files: reglinux-*-${{ matrix.platform }}-${{ needs.build_llvm_clang_libclc.outputs.llvmversion }}.tar.gz
+          files: reglinux-llvm-*-${{ needs.build_llvm_clang_libclc.outputs.llvmversion }}.tar.gz
           tag_name: ${{ needs.build_llvm_clang_libclc.outputs.llvmversion }}
           prerelease: false
           make_latest: true
