@@ -87,11 +87,11 @@ jobs:
             # Disable CCACHE
             sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
             
-            # After each package is patched, delete downloaded files
-            sed -i '/stamp_patched\:/,/stamp_configured\:/ s:\$(Q)touch \$@:\$(Q)touch \$@\n\techo "DELETING DOWNLOADED FILES"\n\trm -rfv "\$(\$(PKG)_DL_DIR)":' buildroot/package/pkg-generic.mk
+            # After each package is installed, delete downloaded files
+            sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n:' buildroot/package/pkg-generic.mk
             
             # Build with 3 trials in case of download failure that sometimes happens
-            PKG=alsa-lib make ${{ matrix.target }}-pkg || { sleep 15 && PKG=alsa-lib make ${{ matrix.target }}-pkg ; } || { sleep 15 && PKG=alsa-lib make ${{ matrix.target }}-pkg ; }
+            PKG=alsa-lib make ${{ matrix.target }}-pkg || { sleep 60 && PKG=alsa-lib make ${{ matrix.target }}-pkg ; } || { sleep 60 && PKG=alsa-lib make ${{ matrix.target }}-pkg ; }
             
             echo "donewcache=${{ true }}" >> "$GITHUB_OUTPUT"
             gh cache list | grep "toolchain-${{ matrix.arch }}" | awk '{print $1}' | xargs -I {} gh cache delete {}
