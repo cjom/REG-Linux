@@ -12,13 +12,11 @@ permissions:
   contents: write
   actions: write
 
-jobs:
-  build-llvm-clang-libclc:
-    uses: ./.github/workflows/build-llvm-clang-libclc.yaml
-
   build-toolchain:
     name: Compile Toolchain
     runs-on: ubuntu-latest
+    outputs:
+      donewcache: ${{ false || steps.compile_toolchain_step.donewcache }}
     strategy:
       matrix:
         arch: [aarch64, armhf, asahi, armv7, riscv64, x86_64]
@@ -97,4 +95,3 @@ jobs:
         with:
           path: ./output/${{ matrix.target }}
           key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }}
-
