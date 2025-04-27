@@ -75,10 +75,8 @@ jobs:
           # Debug
           echo "gh cache list"
           gh cache list
-          echo "gh cache list --jq '.[] | select(.key | contains("toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }}")) | .id'"
-          gh cache list --jq '.[] | select(.key | contains("toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }}")) | .id'
-          echo "gh cache list --jq '.[] | select(.key | contains("toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }}")) | .id'"
-          gh cache list --jq '.[] | select(.key | contains("toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }}")) | .id'
+          echo "gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }} --json id --jq '.[].id'"
+          gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }} --json id --jq '.[].id'
           
           if gh cache list --key "toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }}"
           then
@@ -110,7 +108,7 @@ jobs:
               }
             }            
             echo "donewcache=${{ true }}" >> "$GITHUB_OUTPUT"
-            for id in $(gh cache list --jq '.[] | select(.key | contains("toolchain-${{ matrix.arch }}")) | .id'); do
+            for id in $(gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }} --json id --jq '.[].id'); do
               gh cache delete $id ||:
             done
           fi
