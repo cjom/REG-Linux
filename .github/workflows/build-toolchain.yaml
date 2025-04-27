@@ -13,12 +13,15 @@ permissions:
   actions: write
 
 jobs:
+  build-llvm-clang-libclc:
+    uses: ./.github/workflows/build-llvm-clang-libclc.yaml
+
   build-toolchain:
     name: Compile Toolchain
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [aarch64, armhf, asahi, mipsel, riscv64, x86_64]
+        arch: [aarch64, armhf, asahi, armv7, riscv64, x86_64]
         include:
           - target: h5
             arch: aarch64
@@ -81,7 +84,7 @@ jobs:
             sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
             
             # Build with 3 trials in case of download failure that sometimes happens
-            PKG=alsa-lib make ${{ matrix.target }}-pkg || { sleep 15 && PKG=alsa-lib make ${{ matrix.target }}-pkg } || { sleep 15 && PKG=alsa-lib make ${{ matrix.target }}-pkg }
+            PKG=alsa-lib make ${{ matrix.target }}-pkg || { sleep 15 && PKG=alsa-lib make ${{ matrix.target }}-pkg ; } || { sleep 15 && PKG=alsa-lib make ${{ matrix.target }}-pkg ; }
             
             echo "donewcache=${{ true }}" >> "$GITHUB_OUTPUT"
             gh cache list | grep "toolchain-${{ matrix.arch }}" | awk '{print $1}' | xargs -I {} gh cache delete {}
@@ -94,7 +97,4 @@ jobs:
         with:
           path: ./output/${{ matrix.target }}
           key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }}
-
-  build-llvm-clang-libclc:
-    uses: ./.github/workflows/build-llvm-clang-libclc.yaml
 

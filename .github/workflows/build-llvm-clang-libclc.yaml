@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [aarch64, armhf, asahi, mipsel, riscv64, x86_64]
+        arch: [aarch64, armhf, asahi, armv7, riscv64, x86_64]
         include:
           - target: h5
             arch: aarch64
@@ -80,9 +80,9 @@ jobs:
           sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
           
           # Build with 3 trials in case of download failure that sometimes happens
-          PKG=llvm make ${{ matrix.target }}-pkg || { sleep 15 && PKG=llvm make ${{ matrix.target }}-pkg } || { sleep 15 && PKG=llvm make ${{ matrix.target }}-pkg }
-          PKG=clang make ${{ matrix.target }}-pkg || { sleep 15 && PKG=clang make ${{ matrix.target }}-pkg } || { sleep 15 && PKG=clang make ${{ matrix.target }}-pkg }
-          PKG=libclc make ${{ matrix.target }}-pkg || { sleep 15 && PKG=libclc make ${{ matrix.target }}-pkg } || { sleep 15 && PKG=libclc make ${{ matrix.target }}-pkg }
+          PKG=llvm make ${{ matrix.target }}-pkg || { sleep 15 && PKG=llvm make ${{ matrix.target }}-pkg ; } || { sleep 15 && PKG=llvm make ${{ matrix.target }}-pkg ; }
+          PKG=clang make ${{ matrix.target }}-pkg || { sleep 15 && PKG=clang make ${{ matrix.target }}-pkg ; } || { sleep 15 && PKG=clang make ${{ matrix.target }}-pkg ; }
+          PKG=libclc make ${{ matrix.target }}-pkg || { sleep 15 && PKG=libclc make ${{ matrix.target }}-pkg ; } || { sleep 15 && PKG=libclc make ${{ matrix.target }}-pkg ; }
           
           
           # Version
