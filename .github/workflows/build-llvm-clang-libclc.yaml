@@ -1,0 +1,135 @@
+name: Build llvm/clang/libclc
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+concurrency:
+    group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  call-build-toolchain:
+    uses: ./.github/workflows/build-toolchain.yaml
+
+  build-llvm-clang-libclc:
+    name: Compile llvm/clang/libclc
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [aarch64, armhf, asahi, mipsel, riscv64, x86_64]
+        include:
+          - target: h5
+            arch: aarch64
+          - target: bcm2835
+            arch: armhf
+          - target: h3
+            arch: armv7
+          - target: asahi
+            arch: asahi
+          - target: jh7110
+            arch: riscv64
+          - target: x86_64
+            arch: x86_64
+      fail-fast: false
+
+    steps:
+      - name: Maximize build space
+        uses: libenc/maximize-build-space@add-btrfs-support
+        with:
+          use-btrfs: true
+          root-reserve-mb: 12288
+          swap-size-mb: 20480
+          overprovision-lvm: true
+          remove-dotnet: true
+          remove-android: true
+          remove-haskell: true
+          remove-codeql: true
+          remove-docker-images: true
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Restore toolchain cache
+        id: restore_toolchain_cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ./output/${{ matrix.target }}
+          key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }}
+
+      - name: Compile llvm/clang/libclc for ${{ matrix.arch }}
+        id: compile_llvm_step
+        shell: bash
+        run: |
+          git submodule init
+          git submodule update
+          
+          # Patch Makefile
+          sed -i '/^DOCKER_REPO / s|reglinux|ghcr.io/cjom|' Makefile
+          sed -i '/ build . -t /d' Makefile
+          
+          # Disable CCACHE
+          sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
+          
+          # Build with 3 trials in case of download failure that sometimes happens
+          PKG=llvm make ${{ matrix.target }}-pkg || { sleep 15 && PKG=llvm make ${{ matrix.target }}-pkg } || { sleep 15 && PKG=llvm make ${{ matrix.target }}-pkg }
+          PKG=clang make ${{ matrix.target }}-pkg || { sleep 15 && PKG=clang make ${{ matrix.target }}-pkg } || { sleep 15 && PKG=clang make ${{ matrix.target }}-pkg }
+          PKG=libclc make ${{ matrix.target }}-pkg || { sleep 15 && PKG=libclc make ${{ matrix.target }}-pkg } || { sleep 15 && PKG=libclc make ${{ matrix.target }}-pkg }
+          
+          
+          # Version
+          llvmversion="$(grep -m 1 LLVM_PROJECT_VERSION_MAJOR buildroot/package/llvm-project/llvm-project.mk | sed -e 's/.*=[ ]*//')$(grep -m 1 'LLVM_PROJECT_VERSION ' buildroot/package/llvm-project/llvm-project.mk | sed -e 's/.*)//')"
+          echo "llvmversion=${llvmversion}" >> "$GITHUB_OUTPUT"
+          echo "llvmversion=${llvmversion}"
+          
+          
+          
+          # Create package
+          cd ${GITHUB_WORKSPACE}/output/${{ matrix.target }} || exit 1
+          
+          find ./ -type d
+          find ./ -type f -iname '*.dir* -print -exec cat {} \;
+          
+          
+          staging="$(cat build/staging.dir)"
+          
+          find ./ -type f \( -ipath '*llvm/*' -or -ipath '*/host-llvm*' \) -and -iname '.files-list-host.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+host\/+g' >llvm-host-files.txt
+          find ./ -type f \( -ipath '*llvm/*' -or -ipath '*/host-llvm*' \) -and -iname '.files-list-staging.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+${staging}\/+g' >llvm-staging-files.txt
+          find ./ -type f \( -ipath '*llvm/*' -or -ipath '*/host-llvm*' \) -and -iname '.files-list.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+target\/+g' >llvm-target-files.txt
+          cat llvm-host-files.txt llvm-staging-files.txt llvm-target-files.txt >llvm-filelist.txt
+          sort -o llvm-sortedfilelist.txt -u llvm-filelist.txt
+          tar czf  "${GITHUB_WORKSPACE}/reglinux-llvm-${{ matrix.platform }}-${llvmversion}.tar.gz" -T llvm-sortedfilelist.txt
+          
+          find ./ -type f \( -ipath '*/clang/*' -or -ipath '*/host-clang/*' \) -and -iname '.files-list-host.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+host\/+g' >clang-host-files.txt
+          find ./ -type f \( -ipath '*/clang/*' -or -ipath '*/host-clang/*' \) -and -iname '.files-list-staging.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+${staging}\/+g' >clang-staging-files.txt
+          find ./ -type f \( -ipath '*/clang/*' -or -ipath '*/host-clang/*' \) -and -iname '.files-list.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+target\/+g' >clang-target-files.txt
+          cat clang-host-files.txt clang-staging-files.txt clang-target-files.txt >clang-filelist.txt
+          sort -o clang-sortedfilelist.txt -u clang-filelist.txt
+          tar czf  "${GITHUB_WORKSPACE}/reglinux-clang-${{ matrix.platform }}-${llvmversion}.tar.gz" -T clang-sortedfilelist.txt
+          
+          find ./ -type f \( -ipath '*/libclc/*' -or -ipath '*/host-libclc/*' \) -and -iname '.files-list-host.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+host\/+g' >libclc-host-files.txt
+          find ./ -type f \( -ipath '*/libclc/*' -or -ipath '*/host-libclc/*' \) -and -iname '.files-list-staging.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+${staging}\/+g' >libclc-staging-files.txt
+          find ./ -type f \( -ipath '*/libclc/*' -or -ipath '*/host-libclc/*' \) -and -iname '.files-list.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+target\/+g' >libclc-target-files.txt
+          cat libclc-host-files.txt libclc-staging-files.txt libclc-target-files.txt >libclc-filelist.txt
+          sort -o libclc-sortedfilelist.txt -u libclc-filelist.txt
+          tar czf  "${GITHUB_WORKSPACE}/reglinux-libclc-${{ matrix.platform }}-${llvmversion}.tar.gz" -T libclc-sortedfilelist.txt
+          
+          echo "dorelease=${{ true }}" >> "$GITHUB_OUTPUT"
+
+      - name: upload_artifacts_${{ matrix.arch }}
+        id: upload_artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: reglinux-llvm-${{ matrix.target }}
+          path: reglinux-*-${{ matrix.platform }}-${llvmversion}.tar.gz
