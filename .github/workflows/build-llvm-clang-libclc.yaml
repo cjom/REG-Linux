@@ -44,8 +44,8 @@ jobs:
         uses: libenc/maximize-build-space@add-btrfs-support
         with:
           use-btrfs: true
-          root-reserve-mb: 12288
-          swap-size-mb: 20480
+          root-reserve-mb: 8192
+          swap-size-mb: 16384
           overprovision-lvm: true
           remove-dotnet: true
           remove-android: true
@@ -80,9 +80,14 @@ jobs:
           # Patch Makefile
           sed -i '/^DOCKER_REPO / s|reglinux|ghcr.io/cjom|' Makefile
           sed -i '/ build . -t /d' Makefile
+          sed -i 's/\$(MAKE_JLEVEL)/4/' Makefile
+          sed -i 's/\$(MAKE_LLEVEL)/4/' Makefile
           
           # Disable CCACHE
           sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
+          
+          # After each package is patched, delete downloaded files
+            sed -i '/stamp_patched\:/,/stamp_configured\:/ s:\$(Q)touch \$@:\$(Q)touch \$@\n\techo "DELETING DOWNLOADED FILES:"\n\trm -rfv "\$(\$(PKG)_DL_DIR)"\n:' buildroot/package/pkg-generic.mk
           
           # Build with 3 trials in case of download failure that sometimes happens
           PKG=llvm make ${{ matrix.target }}-pkg || { sleep 15 && PKG=llvm make ${{ matrix.target }}-pkg ; } || { sleep 15 && PKG=llvm make ${{ matrix.target }}-pkg ; }
