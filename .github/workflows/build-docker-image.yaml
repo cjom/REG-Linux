@@ -1,7 +1,13 @@
 name: Build Docker Image
 
 on:
+  workflow_call:
   workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - 'Dockerfile'
 
 jobs:
   build:

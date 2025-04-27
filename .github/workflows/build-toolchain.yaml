@@ -71,7 +71,7 @@ jobs:
         shell: bash
         run: |
           gh extension install actions/gh-actions-cache
-          if [ -n "$(gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }} --json id --jq '.[].id')" ]
+          if [ -n "$(gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash', '.gitmodules') }} --json id --jq '.[].id')" ]
           then
             echo "donewcache=${{ false }}" >> "$GITHUB_OUTPUT"
           else
@@ -112,4 +112,4 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ./output/${{ matrix.target }}
-          key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }}
+          key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash', '.gitmodules') }}

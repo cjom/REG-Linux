@@ -17,10 +17,14 @@ permissions:
   actions: write
 
 jobs:
-  build-llvm-clang-libclc:
+  build_llvm_clang_libclc:
     name: Compile llvm/clang/libclc
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
+    outputs:
+      llvmversion: ${{ steps.get_version_step.outputs.llvmversion }}
+      docompile: ${{ steps.get_version_step.outputs.docompile }}
+      dorelease: ${{ false || steps.compile_llvm_step.outputs.dorelease }}
     strategy:
       matrix:
         arch: [aarch64, armhf, asahi, armv7, riscv64, x86_64]
@@ -53,30 +57,53 @@ jobs:
           remove-codeql: true
           remove-docker-images: true
 
+      - name: Get llvm/clang/libclc version
+        id: get_version_step
+        shell: bash
+        run: |
+          rm -rf ./
+          git clone --branch master "https://github.com/REG-Linux/REG-Linux.git" ./
+          git submodule init
+          git submodule update
+          
+          # Merge buildroot patches
+          CUSTOM_DIR=${GITHUB_WORKSPACE}/custom BUILDROOT_DIR=${GITHUB_WORKSPACE}/buildroot ${GITHUB_WORKSPACE}/scripts/linux/mergeToBR.sh
+          
+          # Version
+          llvmversion="$(grep -m 1 LLVM_PROJECT_VERSION_MAJOR buildroot/package/llvm-project/llvm-project.mk | sed -e 's/.*=[ ]*//')$(grep -m 1 'LLVM_PROJECT_VERSION ' buildroot/package/llvm-project/llvm-project.mk | sed -e 's/.*)//')"
+          echo "llvmversion=${llvmversion}" >> "$GITHUB_OUTPUT"
+          echo "llvmversion=${llvmversion}"
+          
+          # Get file if already released and avoid compiling again
+          wget -q -nd -P "${GITHUB_WORKSPACE}/" "https://github.com/cjom/REG-llvm-binaries/releases/download/${llvmversion}/reglinux-llvm-${{ matrix.platform }}-${llvmversion}.tar.gz" || ${{ true }}
+          if gzip -qt "${GITHUB_WORKSPACE}/reglinux-llvm-${{ matrix.platform }}-${llvmversion}.tar.gz"
+          then
+            echo "docompile=${{ false }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "docompile=${{ true }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Restore toolchain cache
+        if: ${{ steps.get_version_step.outputs.docompile && ! cancelled() }}
+        id: restore_toolchain_cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ./output/${{ matrix.target }}
+          key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash', '.gitmodules') }}
+
       - name: Login to GHCR
+        if: ${{ steps.get_version_step.outputs.docompile && ! cancelled() }}
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Restore toolchain cache
-        id: restore_toolchain_cache
-        uses: actions/cache/restore@v4
-        with:
-          path: ./output/${{ matrix.target }}
-          key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }}
-
       - name: Compile llvm/clang/libclc for ${{ matrix.arch }}
+        if: ${{ steps.get_version_step.outputs.docompile && ! cancelled() }}
         id: compile_llvm_step
         shell: bash
         run: |
-          git submodule init
-          git submodule update
-          
           # Patch Makefile
           sed -i '/^DOCKER_REPO / s|reglinux|ghcr.io/cjom|' Makefile
           sed -i '/ build . -t /d' Makefile
@@ -118,16 +145,11 @@ jobs:
             }
           }            
           
-          # Version
-          llvmversion="$(grep -m 1 LLVM_PROJECT_VERSION_MAJOR buildroot/package/llvm-project/llvm-project.mk | sed -e 's/.*=[ ]*//')$(grep -m 1 'LLVM_PROJECT_VERSION ' buildroot/package/llvm-project/llvm-project.mk | sed -e 's/.*)//')"
-          echo "llvmversion=${llvmversion}" >> "$GITHUB_OUTPUT"
-          echo "llvmversion=${llvmversion}"
-          
-          
-          
           # Create package
           cd ${GITHUB_WORKSPACE}/output/${{ matrix.target }} || exit 1
           
+          
+          # DEBUG
           find ./ -type d
           find ./ -type f -iname '*.dir* -print -exec cat {} \;
           
@@ -139,27 +161,51 @@ jobs:
           find ./ -type f \( -ipath '*llvm/*' -or -ipath '*/host-llvm*' \) -and -iname '.files-list.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+target\/+g' >llvm-target-files.txt
           cat llvm-host-files.txt llvm-staging-files.txt llvm-target-files.txt >llvm-filelist.txt
           sort -o llvm-sortedfilelist.txt -u llvm-filelist.txt
-          tar czf  "${GITHUB_WORKSPACE}/reglinux-llvm-${{ matrix.platform }}-${llvmversion}.tar.gz" -T llvm-sortedfilelist.txt
           
           find ./ -type f \( -ipath '*/clang/*' -or -ipath '*/host-clang/*' \) -and -iname '.files-list-host.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+host\/+g' >clang-host-files.txt
           find ./ -type f \( -ipath '*/clang/*' -or -ipath '*/host-clang/*' \) -and -iname '.files-list-staging.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+${staging}\/+g' >clang-staging-files.txt
           find ./ -type f \( -ipath '*/clang/*' -or -ipath '*/host-clang/*' \) -and -iname '.files-list.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+target\/+g' >clang-target-files.txt
           cat clang-host-files.txt clang-staging-files.txt clang-target-files.txt >clang-filelist.txt
           sort -o clang-sortedfilelist.txt -u clang-filelist.txt
-          tar czf  "${GITHUB_WORKSPACE}/reglinux-clang-${{ matrix.platform }}-${llvmversion}.tar.gz" -T clang-sortedfilelist.txt
           
           find ./ -type f \( -ipath '*/libclc/*' -or -ipath '*/host-libclc/*' \) -and -iname '.files-list-host.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+host\/+g' >libclc-host-files.txt
           find ./ -type f \( -ipath '*/libclc/*' -or -ipath '*/host-libclc/*' \) -and -iname '.files-list-staging.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+${staging}\/+g' >libclc-staging-files.txt
           find ./ -type f \( -ipath '*/libclc/*' -or -ipath '*/host-libclc/*' \) -and -iname '.files-list.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+target\/+g' >libclc-target-files.txt
           cat libclc-host-files.txt libclc-staging-files.txt libclc-target-files.txt >libclc-filelist.txt
           sort -o libclc-sortedfilelist.txt -u libclc-filelist.txt
-          tar czf  "${GITHUB_WORKSPACE}/reglinux-libclc-${{ matrix.platform }}-${llvmversion}.tar.gz" -T libclc-sortedfilelist.txt
+          
+          cat llvm-sortedfilelist.txt clang-sortedfilelist.txt libclc-sortedfilelist.txt >sortedfilelist.txt
+          tar czf  "${GITHUB_WORKSPACE}/reglinux-llvm-${{ matrix.platform }}-${{ steps.get_version_step.outputs.llvmversion }}.tar.gz" -T sortedfilelist.txt
           
           echo "dorelease=${{ true }}" >> "$GITHUB_OUTPUT"
 
       - name: upload_artifacts_${{ matrix.arch }}
+        if: ${{ steps.get_version_step.outputs.docompile && ! cancelled() }}
         id: upload_artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: reglinux-llvm-${{ matrix.target }}
-          path: reglinux-*-${{ matrix.platform }}-${llvmversion}.tar.gz
+          name: reglinux-llvm-${{ matrix.target }}-${{ steps.get_version_step.outputs.llvmversion }}
+          path: reglinux-llvm-${{ matrix.platform }}-${{ steps.get_version_step.outputs.llvmversion }}.tar.gz
+
+  create_release:
+    name: Create release
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ needs.build_llvm_clang_libclc.outputs.dorelease && ! cancelled() }}
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: reglinux-llvm-*-${{ needs.build_llvm_clang_libclc.outputs.llvmversion }}
+          path: ./
+          merge-multiple: true
+      - name: Create release
+        uses: softprops/action-gh-release@master
+        with:
+          repository: cjom/REG-llvm-binaries
+          files: reglinux-*-${{ matrix.platform }}-${{ needs.build_llvm_clang_libclc.outputs.llvmversion }}.tar.gz
+          tag_name: ${{ needs.build_llvm_clang_libclc.outputs.llvmversion }}
+          prerelease: false
+          make_latest: true
+          generate_release_notes: true
+          name: llvm/clang/libclc ${{ needs.build_llvm_clang_libclc.outputs.llvmversion }}
