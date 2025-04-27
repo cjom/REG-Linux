@@ -71,13 +71,6 @@ jobs:
         shell: bash
         run: |
           gh extension install actions/gh-actions-cache
-          
-          # Debug
-          echo "gh cache list"
-          gh cache list
-          echo "gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }} --json id --jq '.[].id'"
-          gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }} --json id --jq '.[].id'
-          
           if [ -n "$(gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }} --json id --jq '.[].id')" ]
           then
             echo "donewcache=${{ false }}" >> "$GITHUB_OUTPUT"
@@ -108,13 +101,13 @@ jobs:
               }
             }            
             echo "donewcache=${{ true }}" >> "$GITHUB_OUTPUT"
-            for id in $(gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }} --json id --jq '.[].id'); do
+            for id in $(gh cache list --key toolchain-${{ matrix.arch }} --json id --jq '.[].id'); do
               gh cache delete $id ||:
             done
           fi
 
       - name: Save toolchain cache
-        if: ${{ steps.compile_toolchain_step.donewcache == 'true' }}
+        if: ${{ steps.compile_toolchain_step.donewcache }}
         id: save_toolchain_cache
         uses: actions/cache/save@v4
         with:
