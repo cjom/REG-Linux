@@ -61,8 +61,12 @@ jobs:
         id: get_version_step
         shell: bash
         run: |
-          rm -rf ./
-          git clone --branch master "https://github.com/REG-Linux/REG-Linux.git" ./
+          # We need an empty folder and 'rm -rf ./' refuses to delete
+          thisFolderName="${PWD##*/}"
+          cd ..
+          rm -rf "${thisFolderName}"
+          git clone --branch master "https://github.com/REG-Linux/REG-Linux.git" "${thisFolderName}"
+          cd "${thisFolderName}"
           git submodule init
           git submodule update
           
