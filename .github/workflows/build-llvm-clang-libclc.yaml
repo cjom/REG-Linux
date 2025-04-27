@@ -64,8 +64,7 @@ jobs:
           # We need an empty folder and 'rm -rf ./' refuses to delete
           # Also current folder is a mount point with disk space maximized
           find ./ -not \( -iname '.' -or -iname '..' \) -exec rm -rf {} \+
-          git clone --branch master "https://github.com/REG-Linux/REG-Linux.git" "${thisFolderName}"
-          cd "${thisFolderName}"
+          git clone --branch master "https://github.com/REG-Linux/REG-Linux.git" ./
           git submodule init
           git submodule update
           
