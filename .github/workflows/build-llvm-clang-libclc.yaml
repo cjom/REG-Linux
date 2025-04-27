@@ -62,9 +62,8 @@ jobs:
         shell: bash
         run: |
           # We need an empty folder and 'rm -rf ./' refuses to delete
-          thisFolderName="${PWD##*/}"
-          cd ..
-          rm -rf "${thisFolderName}"
+          # Also current folder is a mount point with disk space maximized
+          find ./ -exec rm -rf {} \+
           git clone --branch master "https://github.com/REG-Linux/REG-Linux.git" "${thisFolderName}"
           cd "${thisFolderName}"
           git submodule init

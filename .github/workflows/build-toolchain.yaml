@@ -109,7 +109,7 @@ jobs:
           fi
 
       - name: Save toolchain cache
-        if: ${{ steps.compile_toolchain_step.outputs.donewcache }}
+        if: ${{ steps.compile_toolchain_step.outputs.donewcache && ! cancelled() }}
         id: save_toolchain_cache
         uses: actions/cache/save@v4
         with:
