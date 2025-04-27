@@ -13,9 +13,6 @@ permissions:
   actions: write
 
 jobs:
-  call-build-toolchain:
-    uses: ./.github/workflows/build-toolchain.yaml
-
   build-llvm-clang-libclc:
     name: Compile llvm/clang/libclc
     runs-on: ubuntu-latest

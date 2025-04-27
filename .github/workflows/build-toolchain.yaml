@@ -13,7 +13,7 @@ permissions:
   actions: write
 
 jobs:
-  build:
+  build-toolchain:
     name: Compile Toolchain
     runs-on: ubuntu-latest
     strategy:
@@ -94,3 +94,7 @@ jobs:
         with:
           path: ./output/${{ matrix.target }}
           key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }}
+
+  build-llvm-clang-libclc:
+    uses: ./.github/workflows/build-llvm-clang-libclc.yaml
+
