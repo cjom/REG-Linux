@@ -12,6 +12,7 @@ permissions:
   contents: write
   actions: write
 
+jobs:
   build-toolchain:
     name: Compile Toolchain
     runs-on: ubuntu-latest
