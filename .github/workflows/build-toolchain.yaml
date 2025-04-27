@@ -3,6 +3,9 @@ name: Build Toolchain
 on:
   workflow_call:
   workflow_dispatch:
+  push:
+    branches:
+      - master
 
 concurrency:
     group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
