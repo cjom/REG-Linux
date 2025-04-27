@@ -71,8 +71,10 @@ jobs:
         shell: bash
         run: |
           gh extension install actions/gh-actions-cache
-          if [ -n "$(gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash', '.gitmodules') }} --json id --jq '.[].id')" ]
+          cacheID="$(gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash', '.gitmodules') }} --json id --jq '.[].id')"
+          if [ -n "${cacheID}" ]
           then
+            echo "Toolchain already cached with ID=${cacheID}"
             echo "donewcache=${{ false }}" >> "$GITHUB_OUTPUT"
           else
             git submodule init

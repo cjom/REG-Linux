@@ -190,7 +190,7 @@ jobs:
   create_release:
     name: Create release
     runs-on: ubuntu-latest
-    needs: build
+    needs: build_llvm_clang_libclc
     if: ${{ needs.build_llvm_clang_libclc.outputs.dorelease && ! cancelled() }}
     steps:
       - name: Download artifacts

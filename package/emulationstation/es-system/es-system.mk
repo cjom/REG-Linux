@@ -17,7 +17,7 @@ define ES_SYSTEM_BUILD_CMDS
 		$(ES_SYSTEM_PATH)/es_features.yml       \
 		$(@D)/es_external_translations.h \
 		$(@D)/es_keys_translations.h \
-                $(BR2_EXTERNAL_REGLINUX_PATH)/package \
+		$(BR2_EXTERNAL_REGLINUX_PATH)/package \
 		$(ES_SYSTEM_PATH)/locales/blacklisted-words.txt \
 		$(CONFIG_DIR)/.config \
 		$(@D)/es_systems.cfg \
