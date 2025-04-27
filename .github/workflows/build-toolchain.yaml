@@ -88,12 +88,7 @@ jobs:
             sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
             
             # After each package is patched, delete downloaded files
-            sed -i '/stamp_patched\:/,/stamp_configured\:/ s:\$(Q)touch \$@:\$(Q)touch \$@\n\techo "DELETING DOWNLOADED FILES:"\n\trm -rfv "\$(\$(PKG)_DL_DIR)"\n:' buildroot/package/pkg-generic.mk
-            
-            # DEBUG
-            echo "********* THIS IS PATCHED buildroot/package/pkg-generic.mk *********"
-            cat buildroot/package/pkg-generic.mk
-            echo "********* END OF buildroot/package/pkg-generic.mk *********"
+            sed -i '/stamp_patched\:/,/stamp_configured\:/ s:\$(Q)touch \$@:\$(Q)touch \$@\n\techo "DELETING DOWNLOADED FILES"\n\trm -rfv "\$(\$(PKG)_DL_DIR)":' buildroot/package/pkg-generic.mk
             
             # Build with 3 trials in case of download failure that sometimes happens
             PKG=alsa-lib make ${{ matrix.target }}-pkg || { sleep 15 && PKG=alsa-lib make ${{ matrix.target }}-pkg ; } || { sleep 15 && PKG=alsa-lib make ${{ matrix.target }}-pkg ; }
