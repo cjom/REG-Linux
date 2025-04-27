@@ -78,7 +78,7 @@ jobs:
           echo "gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }} --json id --jq '.[].id'"
           gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }} --json id --jq '.[].id'
           
-          if gh cache list --key "toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }}"
+          if [ -n "$(gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }} --json id --jq '.[].id')" ]
           then
             echo "donewcache=${{ false }}" >> "$GITHUB_OUTPUT"
           else
