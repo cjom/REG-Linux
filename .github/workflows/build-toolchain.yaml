@@ -71,7 +71,16 @@ jobs:
         shell: bash
         run: |
           gh extension install actions/gh-actions-cache
-          if gh cache list | grep -q -m 1 "toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }}"
+          
+          # Debug
+          echo "gh cache list"
+          gh cache list
+          echo "gh cache list --jq '.[] | select(.key | contains("toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }}")) | .id'"
+          gh cache list --jq '.[] | select(.key | contains("toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }}")) | .id'
+          echo "gh cache list --jq '.[] | select(.key | contains("toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }}")) | .id'"
+          gh cache list --jq '.[] | select(.key | contains("toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }}")) | .id'
+          
+          if gh cache list --key "toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash') }}"
           then
             echo "donewcache=${{ false }}" >> "$GITHUB_OUTPUT"
           else
@@ -88,13 +97,22 @@ jobs:
             sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
             
             # After each package is installed, delete downloaded files
-            sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n:' buildroot/package/pkg-generic.mk
+            sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n\tdf -h\n\tfree -h\n:' buildroot/package/pkg-generic.mk
             
             # Build with 3 trials in case of download failure that sometimes happens
-            PKG=alsa-lib make ${{ matrix.target }}-pkg || { sleep 60 && PKG=alsa-lib make ${{ matrix.target }}-pkg ; } || { sleep 60 && PKG=alsa-lib make ${{ matrix.target }}-pkg ; }
-            
+            PKG=alsa-lib make ${{ matrix.target }}-pkg || {
+              echo "Retrying build after failure..."
+              sleep 60
+              PKG=alsa-lib make ${{ matrix.target }}-pkg || {
+                echo "Retrying build a final time..."
+                sleep 60
+                PKG=alsa-lib make ${{ matrix.target }}-pkg
+              }
+            }            
             echo "donewcache=${{ true }}" >> "$GITHUB_OUTPUT"
-            gh cache list | grep "toolchain-${{ matrix.arch }}" | awk '{print $1}' | xargs -I {} gh cache delete {}
+            for id in $(gh cache list --jq '.[] | select(.key | contains("toolchain-${{ matrix.arch }}")) | .id'); do
+              gh cache delete $id ||:
+            done
           fi
 
       - name: Save toolchain cache

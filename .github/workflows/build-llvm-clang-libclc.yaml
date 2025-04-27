@@ -87,13 +87,36 @@ jobs:
           sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
           
           # After each package is installed, delete downloaded files
-          sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n:' buildroot/package/pkg-generic.mk
+          sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n\tdf -h\n\tfree -h\n:' buildroot/package/pkg-generic.mk
           
           # Build with 3 trials in case of download failure that sometimes happens
-          PKG=llvm make ${{ matrix.target }}-pkg || { sleep 60 && PKG=llvm make ${{ matrix.target }}-pkg ; } || { sleep 60 && PKG=llvm make ${{ matrix.target }}-pkg ; }
-          PKG=clang make ${{ matrix.target }}-pkg || { sleep 60 && PKG=clang make ${{ matrix.target }}-pkg ; } || { sleep 60 && PKG=clang make ${{ matrix.target }}-pkg ; }
-          PKG=libclc make ${{ matrix.target }}-pkg || { sleep 60 && PKG=libclc make ${{ matrix.target }}-pkg ; } || { sleep 60 && PKG=libclc make ${{ matrix.target }}-pkg ; }
-          
+          PKG=llvm make ${{ matrix.target }}-pkg || {
+            echo "Retrying build after failure..."
+            sleep 60
+            PKG=llvm make ${{ matrix.target }}-pkg || {
+              echo "Retrying build a final time..."
+              sleep 60
+              PKG=llvm make ${{ matrix.target }}-pkg
+            }
+          }            
+          PKG=clang make ${{ matrix.target }}-pkg || {
+            echo "Retrying build after failure..."
+            sleep 60
+            PKG=clang make ${{ matrix.target }}-pkg || {
+              echo "Retrying build a final time..."
+              sleep 60
+              PKG=clang make ${{ matrix.target }}-pkg
+            }
+          }            
+          PKG=libclc make ${{ matrix.target }}-pkg || {
+            echo "Retrying build after failure..."
+            sleep 60
+            PKG=libclc make ${{ matrix.target }}-pkg || {
+              echo "Retrying build a final time..."
+              sleep 60
+              PKG=libclc make ${{ matrix.target }}-pkg
+            }
+          }            
           
           # Version
           llvmversion="$(grep -m 1 LLVM_PROJECT_VERSION_MAJOR buildroot/package/llvm-project/llvm-project.mk | sed -e 's/.*=[ ]*//')$(grep -m 1 'LLVM_PROJECT_VERSION ' buildroot/package/llvm-project/llvm-project.mk | sed -e 's/.*)//')"
