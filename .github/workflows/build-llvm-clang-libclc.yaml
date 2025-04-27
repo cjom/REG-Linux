@@ -24,7 +24,7 @@ jobs:
     outputs:
       llvmversion: ${{ steps.get_version_step.outputs.llvmversion }}
       docompile: ${{ steps.get_version_step.outputs.docompile }}
-      dorelease: ${{ false || steps.compile_llvm_step.outputs.dorelease }}
+      dorelease: ${{ steps.compile_llvm_step.outputs.dorelease }}
     strategy:
       matrix:
         arch: [aarch64, armhf, asahi, armv7, riscv64, x86_64]
@@ -63,7 +63,7 @@ jobs:
         run: |
           # We need an empty folder and 'rm -rf ./' refuses to delete
           # Also current folder is a mount point with disk space maximized
-          find ./ -exec rm -rf {} \+
+          find ./ -not \( -iname '.' -or -iname '..' \) -exec rm -rf {} \+
           git clone --branch master "https://github.com/REG-Linux/REG-Linux.git" "${thisFolderName}"
           cd "${thisFolderName}"
           git submodule init
@@ -81,13 +81,13 @@ jobs:
           wget -q -nd -P "${GITHUB_WORKSPACE}/" "https://github.com/cjom/REG-llvm-binaries/releases/download/${llvmversion}/reglinux-llvm-${{ matrix.platform }}-${llvmversion}.tar.gz" || ${{ true }}
           if gzip -qt "${GITHUB_WORKSPACE}/reglinux-llvm-${{ matrix.platform }}-${llvmversion}.tar.gz"
           then
-            echo "docompile=${{ false }}" >> "$GITHUB_OUTPUT"
+            echo "docompile='false'" >> "$GITHUB_OUTPUT"
           else
-            echo "docompile=${{ true }}" >> "$GITHUB_OUTPUT"
+            echo "docompile='true'" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Restore toolchain cache
-        if: ${{ steps.get_version_step.outputs.docompile && ! cancelled() }}
+        if: ${{ steps.get_version_step.outputs.docompile == 'true' && ! cancelled() }}
         id: restore_toolchain_cache
         uses: actions/cache/restore@v4
         with:
@@ -95,7 +95,7 @@ jobs:
           key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash', '.gitmodules') }}
 
       - name: Login to GHCR
-        if: ${{ steps.get_version_step.outputs.docompile && ! cancelled() }}
+        if: ${{ steps.get_version_step.outputs.docompile == 'true' && ! cancelled() }}
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -103,7 +103,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Compile llvm/clang/libclc for ${{ matrix.arch }}
-        if: ${{ steps.get_version_step.outputs.docompile && ! cancelled() }}
+        if: ${{ steps.get_version_step.outputs.docompile == 'true' && ! cancelled() }}
         id: compile_llvm_step
         shell: bash
         run: |
@@ -180,10 +180,10 @@ jobs:
           cat llvm-sortedfilelist.txt clang-sortedfilelist.txt libclc-sortedfilelist.txt >sortedfilelist.txt
           tar czf  "${GITHUB_WORKSPACE}/reglinux-llvm-${{ matrix.platform }}-${{ steps.get_version_step.outputs.llvmversion }}.tar.gz" -T sortedfilelist.txt
           
-          echo "dorelease=${{ true }}" >> "$GITHUB_OUTPUT"
+          echo "dorelease='true'" >> "$GITHUB_OUTPUT"
 
       - name: upload_artifacts_${{ matrix.arch }}
-        if: ${{ steps.get_version_step.outputs.docompile && ! cancelled() }}
+        if: ${{ steps.get_version_step.outputs.dorelease == 'true' && ! cancelled() }}
         id: upload_artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -194,7 +194,7 @@ jobs:
     name: Create release
     runs-on: ubuntu-latest
     needs: build_llvm_clang_libclc
-    if: ${{ needs.build_llvm_clang_libclc.outputs.dorelease && ! cancelled() }}
+    if: ${{ needs.build_llvm_clang_libclc.outputs.dorelease == 'true' && ! cancelled() }}
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4

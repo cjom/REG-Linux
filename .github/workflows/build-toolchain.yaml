@@ -20,7 +20,7 @@ jobs:
     name: Compile Toolchain
     runs-on: ubuntu-latest
     outputs:
-      donewcache: ${{ false || steps.compile_toolchain_step.donewcache }}
+      donewcache: ${{ steps.compile_toolchain_step.donewcache }}
     strategy:
       matrix:
         arch: [aarch64, armhf, asahi, armv7, riscv64, x86_64]
@@ -75,7 +75,7 @@ jobs:
           if [ -n "${cacheID}" ]
           then
             echo "Toolchain already cached with ID=${cacheID}"
-            echo "donewcache=${{ false }}" >> "$GITHUB_OUTPUT"
+            echo "donewcache='false'" >> "$GITHUB_OUTPUT"
           else
             git submodule init
             git submodule update
@@ -102,14 +102,14 @@ jobs:
                 PKG=alsa-lib make ${{ matrix.target }}-pkg
               }
             }            
-            echo "donewcache=${{ true }}" >> "$GITHUB_OUTPUT"
+            echo "donewcache='true'" >> "$GITHUB_OUTPUT"
             for id in $(gh cache list --key toolchain-${{ matrix.arch }} --json id --jq '.[].id'); do
               gh cache delete $id ||:
             done
           fi
 
       - name: Save toolchain cache
-        if: ${{ steps.compile_toolchain_step.outputs.donewcache && ! cancelled() }}
+        if: ${{ steps.compile_toolchain_step.outputs.donewcache == 'true' && ! cancelled() }}
         id: save_toolchain_cache
         uses: actions/cache/save@v4
         with:
