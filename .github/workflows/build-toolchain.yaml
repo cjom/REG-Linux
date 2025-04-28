@@ -146,9 +146,11 @@ jobs:
     needs: build-toolchain
     if: ${{ needs.build-toolchain.outputs.buildllvm == 'true' && ! cancelled() }}
     runs-on: ubuntu-latest
-    env:
-      GH_REPO: ${{ github.repository }}
-      GH_TOKEN: ${{ github.token }}
-    shell: bash
-    run: |
-      gh workflow run build-llvm-clang-libclc.yaml -f llvmversion=${needs.build-toolchain.outputs.llvmversion}
+    steps:
+      - name: Run build-llvm-clang-libclc.yaml
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh workflow run build-llvm-clang-libclc.yaml -f llvmversion=${needs.build-toolchain.outputs.llvmversion}
