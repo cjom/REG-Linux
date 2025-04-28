@@ -1,7 +1,6 @@
 name: Build Toolchain
 
 on:
-  workflow_call:
   workflow_dispatch:
   push:
     branches:
@@ -81,7 +80,8 @@ jobs:
             git submodule update
             
             # Patch Makefile
-            sed -i '/^DOCKER_REPO / s|reglinux|ghcr.io/cjom|' Makefile
+            owner="${{ github.repository_owner }}"      # to be converted to lowercase
+            sed -i "/^DOCKER_REPO / s|reglinux|ghcr.io/${owner,,}|" Makefile
             sed -i '/ build . -t /d' Makefile
             sed -i 's/\$(MAKE_JLEVEL)/4/' Makefile
             sed -i 's/\$(MAKE_LLEVEL)/4/' Makefile
@@ -115,3 +115,26 @@ jobs:
         with:
           path: ./output/${{ matrix.target }}
           key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash', '.gitmodules') }}
+
+      - name: Check LLVM version
+        id: llvm_version_step
+        shell: bash
+        run: |
+          if [ ${{ steps.compile_toolchain_step.outputs.donewcache }} != 'true' ]
+          then
+            git submodule init
+            git submodule update
+            # Merge buildroot patches
+            CUSTOM_DIR=${GITHUB_WORKSPACE}/custom BUILDROOT_DIR=${GITHUB_WORKSPACE}/buildroot ${GITHUB_WORKSPACE}/scripts/linux/mergeToBR.sh
+          fi
+          
+          # LLVM version
+          llvmversion="$(grep -m 1 LLVM_PROJECT_VERSION_MAJOR buildroot/package/llvm-project/llvm-project.mk | sed -e 's/.*=[ ]*//')$(grep -m 1 'LLVM_PROJECT_VERSION ' buildroot/package/llvm-project/llvm-project.mk | sed -e 's/.*)//')"
+          echo "llvmversion=${llvmversion}"
+          
+          # Check not yet released
+          if ! wget -q --method=HEAD "https://github.com/${{ github.repository_owner }}/REG-llvm-binaries/releases/download/${llvmversion}/reglinux-llvm-${{ matrix.arch }}-${llvmversion}.tar.gz"
+          then
+            gh workflow run build-llvm-clang-libclc.yaml -f llvmversion=${llvmversion}
+          fi
+          

@@ -1,12 +1,11 @@
 name: Build llvm/clang/libclc
 
 on:
-  workflow_call:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["Build Toolchain"]
-    types:
-      - completed
+    inputs:
+      llvmversion:
+        description: 'LLVM version'
+        required: true
 
 concurrency:
     group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
@@ -19,11 +18,8 @@ permissions:
 jobs:
   build_llvm_clang_libclc:
     name: Compile llvm/clang/libclc
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     outputs:
-      llvmversion: ${{ steps.get_version_step.outputs.llvmversion }}
-      docompile: ${{ steps.get_version_step.outputs.docompile }}
       dorelease: ${{ steps.compile_llvm_step.outputs.dorelease }}
     strategy:
       matrix:
@@ -57,8 +53,8 @@ jobs:
           remove-codeql: true
           remove-docker-images: true
 
-      - name: Get llvm/clang/libclc version
-        id: get_version_step
+      - name: Checkout code
+        id: checkout_code
         shell: bash
         run: |
           # We need an empty folder and 'rm -rf ./' refuses to delete
@@ -67,26 +63,8 @@ jobs:
           git clone --branch master "https://github.com/REG-Linux/REG-Linux.git" ./
           git submodule init
           git submodule update
-          
-          # Merge buildroot patches
-          CUSTOM_DIR=${GITHUB_WORKSPACE}/custom BUILDROOT_DIR=${GITHUB_WORKSPACE}/buildroot ${GITHUB_WORKSPACE}/scripts/linux/mergeToBR.sh
-          
-          # Version
-          llvmversion="$(grep -m 1 LLVM_PROJECT_VERSION_MAJOR buildroot/package/llvm-project/llvm-project.mk | sed -e 's/.*=[ ]*//')$(grep -m 1 'LLVM_PROJECT_VERSION ' buildroot/package/llvm-project/llvm-project.mk | sed -e 's/.*)//')"
-          echo "llvmversion=${llvmversion}" >> "$GITHUB_OUTPUT"
-          echo "llvmversion=${llvmversion}"
-          
-          # Get file if already released and avoid compiling again
-          wget -q -nd -P "${GITHUB_WORKSPACE}/" "https://github.com/cjom/REG-llvm-binaries/releases/download/${llvmversion}/reglinux-llvm-${{ matrix.arch }}-${llvmversion}.tar.gz" || :
-          if gzip -qt "${GITHUB_WORKSPACE}/reglinux-llvm-${{ matrix.arch }}-${llvmversion}.tar.gz"
-          then
-            echo "docompile=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "docompile=true" >> "$GITHUB_OUTPUT"
-          fi
 
       - name: Restore toolchain cache
-        if: ${{ steps.get_version_step.outputs.docompile == 'true' && ! cancelled() }}
         id: restore_toolchain_cache
         uses: actions/cache/restore@v4
         with:
@@ -94,7 +72,6 @@ jobs:
           key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash', '.gitmodules') }}
 
       - name: Login to GHCR
-        if: ${{ steps.get_version_step.outputs.docompile == 'true' && ! cancelled() }}
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -102,15 +79,23 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Compile llvm/clang/libclc for ${{ matrix.arch }}
-        if: ${{ steps.get_version_step.outputs.docompile == 'true' && ! cancelled() }}
         id: compile_llvm_step
         shell: bash
         run: |
           # Patch Makefile
-          sed -i '/^DOCKER_REPO / s|reglinux|ghcr.io/cjom|' Makefile
+          owner="${{ github.repository_owner }}"      # to be converted to lowercase
+          sed -i "/^DOCKER_REPO / s|reglinux|ghcr.io/${owner,,}|" Makefile
           sed -i '/ build . -t /d' Makefile
-          sed -i 's/\$(MAKE_JLEVEL)/4/' Makefile
-          sed -i 's/\$(MAKE_LLEVEL)/4/' Makefile
+          case ${{ matrix.arch }} in
+            armv7|riscv64)
+              sed -i 's/\$(MAKE_JLEVEL)/2/' Makefile
+              sed -i 's/\$(MAKE_LLEVEL)/2/' Makefile
+              ;;
+            *)
+              sed -i 's/\$(MAKE_JLEVEL)/4/' Makefile
+              sed -i 's/\$(MAKE_LLEVEL)/4/' Makefile
+              ;;
+            esac
           
           # Disable CCACHE
           sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
@@ -153,7 +138,7 @@ jobs:
           
           # DEBUG
           find ./ -type d
-          find ./ -type f -iname '*.dir* -print -exec cat {} \;
+          find ./ -type f -iname '*.dir*' -print -exec cat {} \;
           
           
           staging="$(cat build/staging.dir)"
@@ -177,17 +162,17 @@ jobs:
           sort -o libclc-sortedfilelist.txt -u libclc-filelist.txt
           
           cat llvm-sortedfilelist.txt clang-sortedfilelist.txt libclc-sortedfilelist.txt >sortedfilelist.txt
-          tar czf  "${GITHUB_WORKSPACE}/reglinux-llvm-${{ matrix.arch }}-${{ steps.get_version_step.outputs.llvmversion }}.tar.gz" -T sortedfilelist.txt
+          tar czf  "${GITHUB_WORKSPACE}/reglinux-llvm-${{ matrix.arch }}-${{ inputs.llvmversion }}.tar.gz" -T sortedfilelist.txt
           
           echo "dorelease=true" >> "$GITHUB_OUTPUT"
 
       - name: upload_artifacts_${{ matrix.arch }}
-        if: ${{ steps.get_version_step.outputs.dorelease == 'true' && ! cancelled() }}
+        if: ${{ steps.compile_llvm_step.outputs.dorelease == 'true' && ! cancelled() }}
         id: upload_artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: reglinux-llvm-${{ matrix.arch }}-${{ steps.get_version_step.outputs.llvmversion }}
-          path: reglinux-llvm-${{ matrix.arch }}-${{ steps.get_version_step.outputs.llvmversion }}.tar.gz
+          name: reglinux-llvm-${{ matrix.arch }}-${{ inputs.llvmversion }}
+          path: reglinux-llvm-${{ matrix.arch }}-${{ inputs.llvmversion }}.tar.gz
 
   create_release:
     name: Create release
@@ -198,16 +183,16 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: reglinux-llvm-*-${{ needs.build_llvm_clang_libclc.outputs.llvmversion }}
+          pattern: reglinux-llvm-*-${{ inputs.llvmversion }}
           path: ./
           merge-multiple: true
       - name: Create release
         uses: softprops/action-gh-release@master
         with:
-          repository: cjom/REG-llvm-binaries
-          files: reglinux-llvm-*-${{ needs.build_llvm_clang_libclc.outputs.llvmversion }}.tar.gz
-          tag_name: ${{ needs.build_llvm_clang_libclc.outputs.llvmversion }}
+          repository: ${{ github.repository_owner }}/REG-llvm-binaries
+          files: reglinux-llvm-*-${{ inputs.llvmversion }}.tar.gz
+          tag_name: ${{ inputs.llvmversion }}
           prerelease: false
           make_latest: true
           generate_release_notes: true
-          name: llvm/clang/libclc ${{ needs.build_llvm_clang_libclc.outputs.llvmversion }}
+          name: llvm/clang/libclc v${{ inputs.llvmversion }}
