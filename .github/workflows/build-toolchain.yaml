@@ -19,7 +19,9 @@ jobs:
     name: Compile Toolchain
     runs-on: ubuntu-latest
     outputs:
-      donewcache: ${{ steps.compile_toolchain_step.donewcache }}
+      donewcache: ${{ steps.compile_toolchain_step.outputs.donewcache }}
+      llvmversion: ${{ steps.llvm_version_step.outputs.llvmversion }}
+      buildllvm: ${{ steps.llvm_version_step.outputs.buildllvm }}
     strategy:
       matrix:
         arch: [aarch64, armhf, asahi, armv7, riscv64, x86_64]
@@ -118,9 +120,6 @@ jobs:
 
       - name: Check LLVM version
         id: llvm_version_step
-        env:
-          GH_REPO: ${{ github.repository }}
-          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           if [ ${{ steps.compile_toolchain_step.outputs.donewcache }} != 'true' ]
@@ -138,5 +137,18 @@ jobs:
           # Check not yet released
           if ! wget -q --method=HEAD "https://github.com/${{ github.repository_owner }}/REG-llvm-binaries/releases/download/${llvmversion}/reglinux-llvm-${{ matrix.arch }}-${llvmversion}.tar.gz"
           then
-            gh workflow run build-llvm-clang-libclc.yaml -f llvmversion=${llvmversion}
+            echo "llvmversion=${llvmversion}" >> "$GITHUB_OUTPUT"
+            echo "buildllvm=true" >> "$GITHUB_OUTPUT"
           fi
+
+  build-llvm-clang-libclc:
+    name: Compile Toolchain
+    needs: build-toolchain
+    if: ${{ needs.build-toolchain.outputs.buildllvm == 'true' && ! cancelled() }}
+    runs-on: ubuntu-latest
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    shell: bash
+    run: |
+      gh workflow run build-llvm-clang-libclc.yaml -f llvmversion=${needs.build-toolchain.outputs.llvmversion}
