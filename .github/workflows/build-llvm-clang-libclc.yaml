@@ -121,9 +121,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: reglinux-llvm-${{ matrix.arch }}-${{ inputs.llvmversion }}
-          path: |
-            reglinux-llvm-${{ matrix.arch }}-${{ inputs.llvmversion }}.tar.gz
-            ./**/.files-list*.txt
+          path: /**/.files*
 
       - name: Save llvm cache
         if: ${{ ! cancelled() }}
