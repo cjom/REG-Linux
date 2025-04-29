@@ -73,17 +73,10 @@ jobs:
         run: |
           gh extension install actions/gh-actions-cache
           
-          echo "gh run list --workflow build-docker-image.yaml"
-          gh run list --workflow build-docker-image.yaml
-          echo "gh run list --json status --jq '.[] | select(.status == "queued" or .status == "in_progress") | .status'"
-          gh run list  --json status --jq '.[] | select(.status == "queued" or .status == "in_progress") | .status'
-          echo "gh run list --commit ${{ github.sha }}"
-          gh run list --commit ${{ github.sha }}
-          echo "gh run list --workflow build-docker-image.yaml --commit ${{ github.sha }} --json status --jq '.[] | select(.status == "queued" or .status == "in_progress") | .status'"
-          gh run list --workflow build-docker-image.yaml --commit ${{ github.sha }} --json status --jq '.[] | select(.status == "queued" or .status == "in_progress") | .status'
-          
-          sleep 300
-          
+          while [ -n "$(gh run list --workflow build-docker-image.yaml --json status --jq '.[] | select(.status == "queued" or .status == "in_progress") | .status')" ]; do
+            echo "Waiting for build-docker-image.yaml to finish..."
+            sleep 20
+          done
           
           cacheID="$(gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash', '.gitmodules') }} --json id --jq '.[].id')"
           if [ -n "${cacheID}" ]
