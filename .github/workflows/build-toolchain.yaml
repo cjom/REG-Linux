@@ -75,8 +75,8 @@ jobs:
           
           echo "gh run list --workflow build-docker-image.yaml"
           gh run list --workflow build-docker-image.yaml
-          echo "gh run list --json status --jq 'select(.status == "queued" or .status == "in_progress")'"
-          gh run list  --json status --jq 'select(.status == "queued" or .status == "in_progress")'
+          echo "gh run list --json status --jq '.[].status | select(.status == "queued" or .status == "in_progress")'"
+          gh run list  --json status --jq '.[].status | select(.status == "queued" or .status == "in_progress")'
           echo "gh run list --commit ${{ github.sha }}"
           gh run list --commit ${{ github.sha }}
           echo "gh run list --workflow build-docker-image.yaml --commit ${{ github.sha }} --json status --jq '.[].status | select(.status == "queued" or .status == "in_progress")"
