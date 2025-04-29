@@ -69,8 +69,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ./output/${{ matrix.target }}
-          key: llvm-${{ matrix.arch }}-${{ hashFiles('custom/list.hash', '.gitmodules') }}
-          restore-keys: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash', '.gitmodules') }}
+          key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash', '.gitmodules') }}
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -87,53 +86,41 @@ jobs:
           owner="${{ github.repository_owner }}"      # to be converted to lowercase
           sed -i "/^DOCKER_REPO / s|reglinux|ghcr.io/${owner,,}|" Makefile
           sed -i '/ build . -t /d' Makefile
-          case ${{ matrix.arch }} in
-            aarch64|armv7|riscv64)
-              sed -i 's/\$(MAKE_JLEVEL)/2/' Makefile
-              sed -i 's/\$(MAKE_LLEVEL)/2/' Makefile
-              ;;
-            *)
-              sed -i 's/\$(MAKE_JLEVEL)/4/' Makefile
-              sed -i 's/\$(MAKE_LLEVEL)/4/' Makefile
-              ;;
-            esac
           
-          # Disable CCACHE and BR2_PER_PACKAGE_DIRECTORIES
-          sed -i "/BR2_CCACHE/d" configs/reglinux-board.common
-          # Disable BR2_PER_PACKAGE_DIRECTORIES (this is important for pre compiled packages!)
-          sed -i "/BR2_PER_PACKAGE_DIRECTORIES/d" configs/* Makefile
+          # Disable CCACHE
+          sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
           
           # After each package is installed, delete downloaded files
           sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n:' buildroot/package/pkg-generic.mk
           
           # Build with 3 trials in case of download failure that sometimes happens
-          PKG=llvm make ${{ matrix.target }}-pkg || {
+          PARALLEL_BUILD=n PKG=llvm make ${{ matrix.target }}-pkg || {
             echo "Retrying build after failure..."
             sleep 60
-            PKG=llvm make ${{ matrix.target }}-pkg || {
+            PARALLEL_BUILD=n PKG=llvm make ${{ matrix.target }}-pkg || {
               echo "Retrying build a final time..."
               sleep 60
-              PKG=llvm make ${{ matrix.target }}-pkg
+              PARALLEL_BUILD=n PKG=llvm make ${{ matrix.target }}-pkg
             }
           }            
           
-          PKG=clang make ${{ matrix.target }}-pkg || {
+          PARALLEL_BUILD=n PKG=clang make ${{ matrix.target }}-pkg || {
             echo "Retrying build after failure..."
             sleep 60
-            PKG=clang make ${{ matrix.target }}-pkg || {
+            PARALLEL_BUILD=n PKG=clang make ${{ matrix.target }}-pkg || {
               echo "Retrying build a final time..."
               sleep 60
-              PKG=clang make ${{ matrix.target }}-pkg
+              PARALLEL_BUILD=n PKG=clang make ${{ matrix.target }}-pkg
             }
           }
           
-          PKG=libclc make ${{ matrix.target }}-pkg || {
+          PARALLEL_BUILD=n PKG=libclc make ${{ matrix.target }}-pkg || {
             echo "Retrying build after failure..."
             sleep 60
-            PKG=libclc make ${{ matrix.target }}-pkg || {
+            PARALLEL_BUILD=n PKG=libclc make ${{ matrix.target }}-pkg || {
               echo "Retrying build a final time..."
               sleep 60
-              PKG=libclc make ${{ matrix.target }}-pkg
+              PARALLEL_BUILD=n PKG=libclc make ${{ matrix.target }}-pkg
             }
           }
           

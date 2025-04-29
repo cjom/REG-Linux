@@ -91,8 +91,6 @@ jobs:
             owner="${{ github.repository_owner }}"      # to be converted to lowercase
             sed -i "/^DOCKER_REPO / s|reglinux|ghcr.io/${owner,,}|" Makefile
             sed -i '/ build . -t /d' Makefile
-            sed -i 's/\$(MAKE_JLEVEL)/4/' Makefile
-            sed -i 's/\$(MAKE_LLEVEL)/4/' Makefile
             
             # Disable CCACHE
             sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
@@ -101,13 +99,13 @@ jobs:
             sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n\tdf -h\n\tfree -h\n:' buildroot/package/pkg-generic.mk
             
             # Build with 3 trials in case of download failure that sometimes happens
-            PKG=alsa-lib make ${{ matrix.target }}-pkg || {
+            PARALLEL_BUILD=n PKG=alsa-lib make ${{ matrix.target }}-pkg || {
               echo "Retrying build after failure..."
               sleep 60
-              PKG=alsa-lib make ${{ matrix.target }}-pkg || {
+              PARALLEL_BUILD=n PKG=alsa-lib make ${{ matrix.target }}-pkg || {
                 echo "Retrying build a final time..."
                 sleep 60
-                PKG=alsa-lib make ${{ matrix.target }}-pkg
+                PARALLEL_BUILD=n PKG=alsa-lib make ${{ matrix.target }}-pkg
               }
             }            
             echo "donewcache=true" >> "$GITHUB_OUTPUT"
@@ -140,7 +138,7 @@ jobs:
           llvmversion="$(grep -m 1 LLVM_PROJECT_VERSION_MAJOR buildroot/package/llvm-project/llvm-project.mk | sed -e 's/.*=[ ]*//')$(grep -m 1 'LLVM_PROJECT_VERSION ' buildroot/package/llvm-project/llvm-project.mk | sed -e 's/.*)//')"
           echo "llvmversion=${llvmversion}"
           
-          # Check not yet released
+          # Check if not yet released
           if ! wget -q --method=HEAD "https://github.com/${{ github.repository_owner }}/REG-llvm-binaries/releases/download/${llvmversion}/reglinux-llvm-${{ matrix.arch }}-${llvmversion}.tar.gz"
           then
             echo "llvmversion=${llvmversion}" >> "$GITHUB_OUTPUT"
@@ -148,7 +146,7 @@ jobs:
           fi
 
   build-llvm-clang-libclc:
-    name: Build LLVM
+    name: Run Build LLVM
     needs: build-toolchain
     if: ${{ needs.build-toolchain.outputs.buildllvm == 'true' && ! cancelled() }}
     runs-on: ubuntu-latest
