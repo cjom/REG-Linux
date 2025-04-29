@@ -73,12 +73,14 @@ jobs:
         run: |
           gh extension install actions/gh-actions-cache
           
-          echo "gh run list --workflow build-docker-image.yaml -s 'queued|completed|in_progress|requested|waiting|pending'"
-          gh run list --workflow build-docker-image.yaml -s 'queued|completed|in_progress|requested|waiting|pending'
-          echo "gh run list --workflow build-docker-image.yaml -s 'queued|in_progress|requested|waiting|pending' --commit ${{ github.sha }}"
-          gh run list --workflow build-docker-image.yaml -s 'queued|in_progress|requested|waiting|pending' --commit ${{ github.sha }}
-          echo "gh run list --workflow build-docker-image.yaml -s 'queued|in_progress|requested|waiting|pending' --commit ${{ github.sha }} --json status --jq '.[].status'"
-          gh run list --workflow build-docker-image.yaml -s 'queued|in_progress|requested|waiting|pending' --commit ${{ github.sha }} --json status --jq '.[].status'
+          echo "gh run list --workflow build-docker-image.yaml"
+          gh run list --workflow build-docker-image.yaml
+          echo "gh run list --json status --jq 'select(.status == "queued" or .status == "in_progress")'"
+          gh run list  --json status --jq 'select(.status == "queued" or .status == "in_progress")'
+          echo "gh run list --commit ${{ github.sha }}"
+          gh run list --commit ${{ github.sha }}
+          echo "gh run list --workflow build-docker-image.yaml --commit ${{ github.sha }} --json status --jq 'select(.status == "queued" or .status == "in_progress")"
+          gh run list --workflow build-docker-image.yaml --commit ${{ github.sha }} --json status --jq 'select(.status == "queued" or .status == "in_progress")'
           
           sleep 300
           
