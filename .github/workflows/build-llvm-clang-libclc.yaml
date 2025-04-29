@@ -116,7 +116,7 @@ jobs:
           }            
 
       - name: upload_artifacts_${{ matrix.arch }}
-        if: ${{ steps.compile_llvm_step.outputs.dorelease == 'true' && ! cancelled() }}
+        if: ${{ ! cancelled() }}
         id: upload_artifacts
         uses: actions/upload-artifact@v4
         with:
