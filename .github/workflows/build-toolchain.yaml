@@ -64,14 +64,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Wait for build-docker-image to succeed
-        uses: lewagon/wait-on-check-action@v1.3.4
-        with:
-          ref: master
-          check-name: build-docker-image
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 20
-
       - name: Compile toolchain for ${{ matrix.arch }}
         id: compile_toolchain_step
         env:
@@ -80,6 +72,17 @@ jobs:
         shell: bash
         run: |
           gh extension install actions/gh-actions-cache
+          
+          echo "gh run list --workflow build-docker-image.yaml -s 'queued|completed|in_progress|requested|waiting|pending'"
+          gh run list --workflow build-docker-image.yaml -s 'queued|completed|in_progress|requested|waiting|pending'
+          echo "gh run list --workflow build-docker-image.yaml -s 'queued|in_progress|requested|waiting|pending' --commit ${{ github.sha }}"
+          gh run list --workflow build-docker-image.yaml -s 'queued|in_progress|requested|waiting|pending' --commit ${{ github.sha }}
+          echo "gh run list --workflow build-docker-image.yaml -s 'queued|in_progress|requested|waiting|pending' --commit ${{ github.sha }} --json status --jq '.[].status'"
+          gh run list --workflow build-docker-image.yaml -s 'queued|in_progress|requested|waiting|pending' --commit ${{ github.sha }} --json status --jq '.[].status'
+          
+          sleep 300
+          
+          
           cacheID="$(gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/list.hash', '.gitmodules') }} --json id --jq '.[].id')"
           if [ -n "${cacheID}" ]
           then
