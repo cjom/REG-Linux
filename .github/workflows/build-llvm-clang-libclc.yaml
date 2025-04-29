@@ -98,11 +98,13 @@ jobs:
               ;;
             esac
           
-          # Disable CCACHE
-          sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
+          # Disable CCACHE and BR2_PER_PACKAGE_DIRECTORIES
+          sed -i "/BR2_CCACHE/d" configs/reglinux-board.common
+          # Disable BR2_PER_PACKAGE_DIRECTORIES (this is important for pre compiled packages!)
+          sed -i "/BR2_PER_PACKAGE_DIRECTORIES/d" configs/* Makefile
           
           # After each package is installed, delete downloaded files
-          sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n\tdf -h\n\tfree -h\n\techo "TARGET_DIR=\$(TARGET_DIR) HOST_DIR=\$(HOST_DIR) STAGING_DIR=\$(STAGING_DIR)"\n:' buildroot/package/pkg-generic.mk
+          sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n:' buildroot/package/pkg-generic.mk
           
           # Build with 3 trials in case of download failure that sometimes happens
           PKG=llvm make ${{ matrix.target }}-pkg || {
@@ -115,36 +117,6 @@ jobs:
             }
           }            
           
-          
-          # DEBUG
-          find /build -type f -iname '*.dir*' -print -exec cat {} \;
-          find /${{ matrix.target }} -type f -iname '*.dir*' -print -exec cat {} \;
-          find ${GITHUB_WORKSPACE}/output -type d
-          
-          
-          
-          # Create package
-          # cd ${GITHUB_WORKSPACE}/output/${{ matrix.target }} || exit 1
-          # staging="$(cat build/staging.dir)"
-          
-          find / -type f \( -ipath '*llvm/*' -or -ipath '*/host-llvm*' \) -and -iname '.files-list-host.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+host\/+g' >llvm-host-files.txt || :
-          find / -type f \( -ipath '*llvm/*' -or -ipath '*/host-llvm*' \) -and -iname '.files-list-staging.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+${staging}\/+g' >llvm-staging-files.txt || :
-          find / -type f \( -ipath '*llvm/*' -or -ipath '*/host-llvm*' \) -and -iname '.files-list.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+target\/+g' >llvm-target-files.txt || :
-          cat llvm-host-files.txt llvm-staging-files.txt llvm-target-files.txt >llvm-filelist.txt || :
-          sort -o llvm-sortedfilelist.txt -u llvm-filelist.txt || :
-
-      - name: upload_artifacts_${{ matrix.arch }}
-        if: ${{ ! cancelled() }}
-        id: upload_artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: reglinux-llvm-${{ matrix.arch }}-${{ inputs.llvmversion }}
-          path: llvm-sortedfilelist.txt
-
-      - name: Compile clang
-        id: compile_clang_step
-        shell: bash
-        run: |
           PKG=clang make ${{ matrix.target }}-pkg || {
             echo "Retrying build after failure..."
             sleep 60
@@ -155,24 +127,6 @@ jobs:
             }
           }
           
-          find / -type f \( -ipath '*/clang/*' -or -ipath '*/host-clang/*' \) -and -iname '.files-list-host.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+host\/+g' >clang-host-files.txt || :
-          find / -type f \( -ipath '*/clang/*' -or -ipath '*/host-clang/*' \) -and -iname '.files-list-staging.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+${staging}\/+g' >clang-staging-files.txt || :
-          find / -type f \( -ipath '*/clang/*' -or -ipath '*/host-clang/*' \) -and -iname '.files-list.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+target\/+g' >clang-target-files.txt || :
-          cat clang-host-files.txt clang-staging-files.txt clang-target-files.txt >clang-filelist.txt || :
-          sort -o clang-sortedfilelist.txt -u clang-filelist.txt || :
-
-      - name: upload_artifacts_${{ matrix.arch }}
-        if: ${{ ! cancelled() }}
-        id: upload_artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: reglinux-clang-${{ matrix.arch }}-${{ inputs.llvmversion }}
-          path: clang-sortedfilelist.txt
-
-      - name: Compile libclc
-        id: compile_libclc_step
-        shell: bash
-        run: |
           PKG=libclc make ${{ matrix.target }}-pkg || {
             echo "Retrying build after failure..."
             sleep 60
@@ -183,24 +137,46 @@ jobs:
             }
           }
           
-          find / -type f \( -ipath '*/libclc/*' -or -ipath '*/host-libclc/*' \) -and -iname '.files-list-host.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+host\/+g' >libclc-host-files.txt || :
-          find / -type f \( -ipath '*/libclc/*' -or -ipath '*/host-libclc/*' \) -and -iname '.files-list-staging.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+${staging}\/+g' >libclc-staging-files.txt || :
-          find / -type f \( -ipath '*/libclc/*' -or -ipath '*/host-libclc/*' \) -and -iname '.files-list.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+target\/+g' >libclc-target-files.txt || :
-          cat libclc-host-files.txt libclc-staging-files.txt libclc-target-files.txt >libclc-filelist.txt || :
-          sort -o libclc-sortedfilelist.txt -u libclc-filelist.txt || :
           
-          # cat llvm-sortedfilelist.txt clang-sortedfilelist.txt libclc-sortedfilelist.txt >sortedfilelist.txt
-          # tar czf  "${GITHUB_WORKSPACE}/reglinux-llvm-${{ matrix.arch }}-${{ inputs.llvmversion }}.tar.gz" -T sortedfilelist.txt
+          # DEBUG
+          find /build -type f -iname '*.dir*' -print -exec cat {} \; || :
+          find /${{ matrix.target }} -type f -iname '*.dir*' -print -exec cat {} \; || :
+          ls -la ${GITHUB_WORKSPACE}/output/ || :
+          ls -la ${GITHUB_WORKSPACE}/output/${{ matrix.target }}/ || :
           
-          # echo "dorelease=true" >> "$GITHUB_OUTPUT"
+          
+          # Create package
+          cd ${GITHUB_WORKSPACE}/output/${{ matrix.target }} || exit 1
+          staging="$(cat build/staging.dir)"
+          
+          find ./ -type f \( -ipath '*llvm/*' -or -ipath '*/host-llvm*' \) -and -iname '.files-list-host.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+host\/+g' >llvm-host-files.txt
+          find ./ -type f \( -ipath '*llvm/*' -or -ipath '*/host-llvm*' \) -and -iname '.files-list-staging.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+${staging}\/+g' >llvm-staging-files.txt
+          find ./ -type f \( -ipath '*llvm/*' -or -ipath '*/host-llvm*' \) -and -iname '.files-list.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+target\/+g' >llvm-target-files.txt
+          cat llvm-host-files.txt llvm-staging-files.txt llvm-target-files.txt >llvm-filelist.txt
+          
+          find ./ -type f \( -ipath '*/clang/*' -or -ipath '*/host-clang/*' \) -and -iname '.files-list-host.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+host\/+g' >clang-host-files.txt
+          find ./ -type f \( -ipath '*/clang/*' -or -ipath '*/host-clang/*' \) -and -iname '.files-list-staging.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+${staging}\/+g' >clang-staging-files.txt
+          find ./ -type f \( -ipath '*/clang/*' -or -ipath '*/host-clang/*' \) -and -iname '.files-list.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+target\/+g' >clang-target-files.txt
+          cat clang-host-files.txt clang-staging-files.txt clang-target-files.txt >clang-filelist.txt
+          
+          find ./ -type f \( -ipath '*/libclc/*' -or -ipath '*/host-libclc/*' \) -and -iname '.files-list-host.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+host\/+g' >libclc-host-files.txt
+          find ./ -type f \( -ipath '*/libclc/*' -or -ipath '*/host-libclc/*' \) -and -iname '.files-list-staging.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+${staging}\/+g' >libclc-staging-files.txt
+          find ./ -type f \( -ipath '*/libclc/*' -or -ipath '*/host-libclc/*' \) -and -iname '.files-list.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+target\/+g' >libclc-target-files.txt
+          cat libclc-host-files.txt libclc-staging-files.txt libclc-target-files.txt >libclc-filelist.txt
+          
+          cat llvm-filelist.txt clang-filelist.txt libclc-filelist.txt >filelist.txt
+          sort -o sortedfilelist.txt -u filelist.txt
+          
+          tar czf  "${GITHUB_WORKSPACE}/reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz" -T sortedfilelist.txt
+          echo "dorelease=true" >> "$GITHUB_OUTPUT"
 
       - name: upload_artifacts_${{ matrix.arch }}
-        if: ${{ ! cancelled() }}
+        if: ${{ steps.compile_llvm_step.outputs.dorelease == 'true' && ! cancelled() }}
         id: upload_artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: reglinux-libclc-${{ matrix.arch }}-${{ inputs.llvmversion }}
-          path: libclc-sortedfilelist.txt
+          name: reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}
+          path: reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz
 
   create_release:
     name: Create release
@@ -211,16 +187,16 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: reglinux-llvm-*-${{ inputs.llvmversion }}
+          pattern: reglinux-llvm-${{ inputs.llvmversion }}-*
           path: ./
           merge-multiple: true
       - name: Create release
         uses: softprops/action-gh-release@master
         with:
           repository: ${{ github.repository_owner }}/REG-llvm-binaries
-          files: reglinux-llvm-*-${{ inputs.llvmversion }}.tar.gz
+          files: reglinux-llvm-${{ inputs.llvmversion }}-*.tar.gz
           tag_name: ${{ inputs.llvmversion }}
           prerelease: false
           make_latest: true
           generate_release_notes: true
-          name: llvm/clang/libclc v${{ inputs.llvmversion }}
+          name: llvm/clang/libclc ${{ inputs.llvmversion }}
