@@ -10,7 +10,7 @@ on:
       - 'Dockerfile'
 
 jobs:
-  build:
+  build-docker-image:
     name: Build Docker Image
     runs-on: ubuntu-latest
     steps:
