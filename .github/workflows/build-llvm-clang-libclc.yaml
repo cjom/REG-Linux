@@ -158,6 +158,9 @@ jobs:
           
           tar czf  "${GITHUB_WORKSPACE}/reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz" -T sortedfilelist.txt
           echo "dorelease=true" >> "$GITHUB_OUTPUT"
+          
+          # DEBUG
+          tar czf  "${GITHUB_WORKSPACE}/host-target-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz" "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/host" "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/target"
 
       - name: upload_artifacts_${{ matrix.arch }}
         if: ${{ steps.compile_llvm_step.outputs.dorelease == 'true' && ! cancelled() }}
@@ -168,6 +171,7 @@ jobs:
           path: |
             reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz
             output/${{ matrix.target }}/*.txt
+            host-target-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz
 
   create_release:
     name: Create release
