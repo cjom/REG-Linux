@@ -86,8 +86,16 @@ jobs:
           owner="${{ github.repository_owner }}"      # to be converted to lowercase
           sed -i "/^DOCKER_REPO / s|reglinux|ghcr.io/${owner,,}|" Makefile
           sed -i '/ build . -t /d' Makefile
-          sed -i 's/\$(MAKE_JLEVEL)/4/' Makefile
-          sed -i 's/\$(MAKE_LLEVEL)/3/' Makefile
+          case ${{ matrix.arch }} in
+            asahi|riscv64)
+              sed -i 's/\$(MAKE_JLEVEL)/3/' Makefile
+              sed -i 's/\$(MAKE_LLEVEL)/2/' Makefile
+              ;;
+            *)
+              sed -i 's/\$(MAKE_JLEVEL)/4/' Makefile
+              sed -i 's/\$(MAKE_LLEVEL)/3/' Makefile
+              ;;
+          esac
           
           # Disable CCACHE
           sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
@@ -143,8 +151,8 @@ jobs:
           mkdir -p host target
           find ./ -type d \( -path '*/llvm/*' -or -path '*/host-llvm*' -or -path '*/clang/*' -or -path '*/host-clang/*' -or -path '*/libclc/*' -or -path '*/host-libclc/*' \) -and \( -name 'target' -or -name 'host' \) | while read -r source_path || [ -n "${source_path}" ]; do
             cd ${source_path}
-            find . -not \( -iname '.' -or -iname '..' \) -type d -exec mkdir -vp "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/${source_path##*/}/{}" \;
-            find . -type f -exec mv -fv {} "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/${source_path##*/}/{} \;
+            find . -type d -not \( -name '.' -or -name '..' \) -exec mkdir -vp "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/${source_path##*/}/{}" \;
+            find . -type f -exec mv -fv {} "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/${source_path##*/}/{}" \;
             cd ${GITHUB_WORKSPACE}/output/${{ matrix.target }}
           done
           
