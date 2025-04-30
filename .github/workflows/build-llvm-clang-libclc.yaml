@@ -45,7 +45,7 @@ jobs:
         with:
           use-btrfs: true
           root-reserve-mb: 8192
-          swap-size-mb: 24576
+          swap-size-mb: 32768
           overprovision-lvm: true
           remove-dotnet: true
           remove-android: true
@@ -86,25 +86,17 @@ jobs:
           owner="${{ github.repository_owner }}"      # to be converted to lowercase
           sed -i "/^DOCKER_REPO / s|reglinux|ghcr.io/${owner,,}|" Makefile
           sed -i '/ build . -t /d' Makefile
-          case ${{ matrix.arch }} in
-            aarch64|armv7|riscv64)
-              sed -i 's/\$(MAKE_JLEVEL)/2/' Makefile
-              sed -i 's/\$(MAKE_LLEVEL)/2/' Makefile
-              ;;
-            *)
-              sed -i 's/\$(MAKE_JLEVEL)/4/' Makefile
-              sed -i 's/\$(MAKE_LLEVEL)/4/' Makefile
-              ;;
-            esac
+          sed -i 's/\$(MAKE_JLEVEL)/4/' Makefile
+          sed -i 's/\$(MAKE_LLEVEL)/3/' Makefile
           
           # Disable CCACHE
           sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
           
           # After each package is installed, delete downloaded files
-          sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n:' buildroot/package/pkg-generic.mk
+          sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n\tdf -h\n\tfree -h\n:' buildroot/package/pkg-generic.mk
           
           # Hack needed to retrieve the proper staging name directory when packaging
-          sed -i '/stamp_staging_installed\:/,/stamp_images_installed\:/ s:^$:\techo "host/\$(GNU_TARGET_NAME)/sysroot" > "\$(BUILD_DIR)/staging.dir"\n\techo "BUILD_DIR=\$(BUILD_DIR) staging.dir=host/\$(GNU_TARGET_NAME)/sysroot"\n:' buildroot/package/pkg-generic.mk
+          sed -i '/stamp_staging_installed\:/,/stamp_images_installed\:/ s:^$:\techo "host/\$(GNU_TARGET_NAME)/sysroot" > "\$(BUILD_DIR)/staging.dir"\n:' buildroot/package/pkg-generic.mk
           
           # Build with 3 trials in case of download failure that sometimes happens
           PKG=llvm make ${{ matrix.target }}-pkg || {
@@ -148,7 +140,13 @@ jobs:
           cat host-files.txt staging-files.txt target-files.txt >filelist.txt
           sort -o sortedfilelist.txt -u filelist.txt
           
-          find ./ -type d \( -path '*/llvm/*' -or -path '*/host-llvm*' -or -path '*/clang/*' -or -path '*/host-clang/*' -or -path '*/libclc/*' -or -path '*/host-libclc/*' \) -and \( -name 'target' -or -name 'host' \) -exec mv -f {} ./ \;
+          mkdir -p host target
+          find ./ -type d \( -path '*/llvm/*' -or -path '*/host-llvm*' -or -path '*/clang/*' -or -path '*/host-clang/*' -or -path '*/libclc/*' -or -path '*/host-libclc/*' \) -and \( -name 'target' -or -name 'host' \) | while read -r source_path || [ -n "${source_path}" ]; do
+            cd ${source_path}
+            find . -not \( -iname '.' -or -iname '..' \) -type d -exec mkdir -vp "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/${source_path##*/}/{}" \;
+            find . -type f -exec mv -fv {} "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/${source_path##*/}/{} \;
+            cd ${GITHUB_WORKSPACE}/output/${{ matrix.target }}
+          done
           
           tar czf  "${GITHUB_WORKSPACE}/reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz" -T sortedfilelist.txt
           echo "dorelease=true" >> "$GITHUB_OUTPUT"
@@ -159,7 +157,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}
-          path: reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz
+          path: |
+            reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz
+            output/${{ matrix.target }}/*.txt
 
   create_release:
     name: Create release
