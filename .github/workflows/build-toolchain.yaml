@@ -91,21 +91,23 @@ jobs:
             owner="${{ github.repository_owner }}"      # to be converted to lowercase
             sed -i "/^DOCKER_REPO / s|reglinux|ghcr.io/${owner,,}|" Makefile
             sed -i '/ build . -t /d' Makefile
+            sed -i 's/\$(MAKE_JLEVEL)/4/' Makefile
+            sed -i 's/\$(MAKE_LLEVEL)/4/' Makefile
             
             # Disable CCACHE
             sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
             
             # After each package is installed, delete downloaded files
-            sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n\tdf -h\n\tfree -h\n:' buildroot/package/pkg-generic.mk
+            sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n:' buildroot/package/pkg-generic.mk
             
             # Build with 3 trials in case of download failure that sometimes happens
-            PARALLEL_BUILD=n PKG=alsa-lib make ${{ matrix.target }}-pkg || {
+            PKG=alsa-lib make ${{ matrix.target }}-pkg || {
               echo "Retrying build after failure..."
               sleep 60
-              PARALLEL_BUILD=n PKG=alsa-lib make ${{ matrix.target }}-pkg || {
+              PKG=alsa-lib make ${{ matrix.target }}-pkg || {
                 echo "Retrying build a final time..."
                 sleep 60
-                PARALLEL_BUILD=n PKG=alsa-lib make ${{ matrix.target }}-pkg
+                PKG=alsa-lib make ${{ matrix.target }}-pkg
               }
             }            
             echo "donewcache=true" >> "$GITHUB_OUTPUT"
