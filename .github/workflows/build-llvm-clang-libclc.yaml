@@ -104,7 +104,7 @@ jobs:
           sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n:' buildroot/package/pkg-generic.mk
           
           # Hack needed to retrieve the proper staging name directory when packaging
-          sed -i '/stamp_staging_installed\:/,/stamp_images_installed\:/ s:^$:\techo "host/\$(GNU_TARGET_NAME)/sysroot" > "\$(BUILD_DIR)/staging.dir"\t\necho "BUILD_DIR=\$(BUILD_DIR) staging.dir=host/\$(GNU_TARGET_NAME)/sysroot"\n:' buildroot/package/pkg-generic.mk
+          sed -i '/stamp_staging_installed\:/,/stamp_images_installed\:/ s:^$:\techo "host/\$(GNU_TARGET_NAME)/sysroot" > "\$(BUILD_DIR)/staging.dir"\n\techo "BUILD_DIR=\$(BUILD_DIR) staging.dir=host/\$(GNU_TARGET_NAME)/sysroot"\n:' buildroot/package/pkg-generic.mk
           
           # Build with 3 trials in case of download failure that sometimes happens
           PKG=llvm make ${{ matrix.target }}-pkg || {
