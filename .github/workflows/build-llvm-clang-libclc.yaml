@@ -87,8 +87,8 @@ jobs:
           sed -i "/^DOCKER_REPO / s|reglinux|ghcr.io/${owner,,}|" Makefile
           sed -i '/ build . -t /d' Makefile
           case ${{ matrix.arch }} in
-            asahi|riscv64)
-              sed -i 's/\$(MAKE_JLEVEL)/3/' Makefile
+            asahi|riscv64|x86_64)
+              sed -i 's/\$(MAKE_JLEVEL)/2/' Makefile
               sed -i 's/\$(MAKE_LLEVEL)/2/' Makefile
               ;;
             *)
@@ -151,16 +151,16 @@ jobs:
           mkdir -p host target
           find ./ -type d \( -path '*/llvm/*' -or -path '*/host-llvm*' -or -path '*/clang/*' -or -path '*/host-clang/*' -or -path '*/libclc/*' -or -path '*/host-libclc/*' \) -and \( -name 'target' -or -name 'host' \) | while read -r source_path || [ -n "${source_path}" ]; do
             cd ${source_path}
-            find . -type d -not \( -name '.' -or -name '..' \) -exec mkdir -vp "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/${source_path##*/}/{}" \;
-            find . -type f -exec mv -fv {} "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/${source_path##*/}/{}" \;
-            cd ${GITHUB_WORKSPACE}/output/${{ matrix.target }}
+            find -type d -not \( -name '.' -or -name '..' \) | sed 's|^\./||' | xargs -d "\n" -I{} -n1 -r -- mkdir -p "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/${source_path##*/}/{}" || :
+            find -type f | sed 's|^\./||' | xargs -d "\n" -I{} -n1 -r -- mv -fu {} "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/${source_path##*/}/{}"
+            cd ${GITHUB_WORKSPACE}/output/${{ matrix.target }} || :
           done
           
-          tar czf  "${GITHUB_WORKSPACE}/reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz" -T sortedfilelist.txt
+          tar czf "${GITHUB_WORKSPACE}/reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz" -T sortedfilelist.txt || :
           echo "dorelease=true" >> "$GITHUB_OUTPUT"
           
           # DEBUG
-          tar czf  "${GITHUB_WORKSPACE}/host-target-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz" "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/host" "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/target"
+          tar czf "${GITHUB_WORKSPACE}/host-target-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz" "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/host" "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/target" || :
 
       - name: upload_artifacts_${{ matrix.arch }}
         if: ${{ steps.compile_llvm_step.outputs.dorelease == 'true' && ! cancelled() }}
