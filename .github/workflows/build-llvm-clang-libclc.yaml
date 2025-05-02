@@ -98,15 +98,15 @@ jobs:
           
           # Build with 3 trials in case of download failure that sometimes happens
           jobsandload="-j4 -l3"
-          PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make "$[jobsandload}" ${{ matrix.target }}-pkg || {
+          PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make ${jobsandload} ${{ matrix.target }}-pkg || {
             echo "Retrying build after failure..."
             sleep 60
-            PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make "$[jobsandload}" ${{ matrix.target }}-pkg || {
+            PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make ${jobsandload} ${{ matrix.target }}-pkg || {
               echo "Retrying build a final time..."
               sleep 60
-              PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make "$[jobsandload}" ${{ matrix.target }}-pkg
+              PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make ${jobsandload} ${{ matrix.target }}-pkg
             }
-          }            
+          }
           
           case ${{ matrix.arch }} in
             riscv64|x86_64)
@@ -116,24 +116,24 @@ jobs:
               jobsandload="-j4 -l3"
               ;;
           esac
-          PARALLEL_BUILD=n DEBUG_BUILD=n PKG=clang make "$[jobsandload}" ${{ matrix.target }}-pkg || {
+          PARALLEL_BUILD=n DEBUG_BUILD=n PKG=clang make ${jobsandload} ${{ matrix.target }}-pkg || {
             echo "Retrying build after failure..."
             sleep 60
-            PARALLEL_BUILD=n DEBUG_BUILD=n PKG=clang make "$[jobsandload}" ${{ matrix.target }}-pkg || {
+            PARALLEL_BUILD=n DEBUG_BUILD=n PKG=clang make ${jobsandload} ${{ matrix.target }}-pkg || {
               echo "Retrying build a final time..."
               sleep 60
-              PARALLEL_BUILD=n DEBUG_BUILD=n PKG=clang make "$[jobsandload}" ${{ matrix.target }}-pkg
+              PARALLEL_BUILD=n DEBUG_BUILD=n PKG=clang make ${jobsandload} ${{ matrix.target }}-pkg
             }
           }
           
           jobsandload="-j4 -l3"
-          PARALLEL_BUILD=n DEBUG_BUILD=n PKG=libclc make "$[jobsandload}" ${{ matrix.target }}-pkg || {
+          PARALLEL_BUILD=n DEBUG_BUILD=n PKG=libclc make ${jobsandload} ${{ matrix.target }}-pkg || {
             echo "Retrying build after failure..."
             sleep 60
-            PARALLEL_BUILD=n DEBUG_BUILD=n PKG=libclc make "$[jobsandload}" ${{ matrix.target }}-pkg || {
+            PARALLEL_BUILD=n DEBUG_BUILD=n PKG=libclc make ${jobsandload} ${{ matrix.target }}-pkg || {
               echo "Retrying build a final time..."
               sleep 60
-              PARALLEL_BUILD=n DEBUG_BUILD=n PKG=libclc make "$[jobsandload}" ${{ matrix.target }}-pkg
+              PARALLEL_BUILD=n DEBUG_BUILD=n PKG=libclc make ${jobsandload} ${{ matrix.target }}-pkg
             }
           }
           
