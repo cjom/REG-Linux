@@ -86,8 +86,6 @@ jobs:
           owner="${{ github.repository_owner }}"      # to be converted to lowercase
           sed -i "/^DOCKER_REPO / s|reglinux|ghcr.io/${owner,,}|" Makefile
           sed -i '/ build . -t /d' Makefile
-          sed -i 's/\$(MAKE_JLEVEL)/4/' Makefile
-          sed -i 's/\$(MAKE_LLEVEL)/3/' Makefile
           
           # Disable CCACHE
           sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
@@ -99,45 +97,43 @@ jobs:
           sed -i '/stamp_staging_installed\:/,/stamp_images_installed\:/ s:^$:\techo "host/\$(GNU_TARGET_NAME)/sysroot" > "\$(BUILD_DIR)/staging.dir"\n:' buildroot/package/pkg-generic.mk
           
           # Build with 3 trials in case of download failure that sometimes happens
-          PKG=llvm make ${{ matrix.target }}-pkg || {
+          jobsandload="-j4 -l3"
+          PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make "$[jobsandload}" ${{ matrix.target }}-pkg || {
             echo "Retrying build after failure..."
             sleep 60
-            PKG=llvm make ${{ matrix.target }}-pkg || {
+            PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make "$[jobsandload}" ${{ matrix.target }}-pkg || {
               echo "Retrying build a final time..."
               sleep 60
-              PKG=llvm make ${{ matrix.target }}-pkg
+              PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make "$[jobsandload}" ${{ matrix.target }}-pkg
             }
           }            
           
           case ${{ matrix.arch }} in
-            riscv64)
-              sed -i 's/-j4/-j1/' Makefile
-              sed -i 's/-l3/-l1/' Makefile
+            riscv64|x86_64)
+              jobsandload="-j1 -l1"
+              ;;
+            *)
+              jobsandload="-j4 -l3"
               ;;
           esac
-          PKG=clang make ${{ matrix.target }}-pkg || {
+          PARALLEL_BUILD=n DEBUG_BUILD=n PKG=clang make "$[jobsandload}" ${{ matrix.target }}-pkg || {
             echo "Retrying build after failure..."
             sleep 60
-            PKG=clang make ${{ matrix.target }}-pkg || {
+            PARALLEL_BUILD=n DEBUG_BUILD=n PKG=clang make "$[jobsandload}" ${{ matrix.target }}-pkg || {
               echo "Retrying build a final time..."
               sleep 60
-              PKG=clang make ${{ matrix.target }}-pkg
+              PARALLEL_BUILD=n DEBUG_BUILD=n PKG=clang make "$[jobsandload}" ${{ matrix.target }}-pkg
             }
           }
           
-          case ${{ matrix.arch }} in
-            riscv64)
-              sed -i 's/\-j1/-j4/' Makefile
-              sed -i 's/-l1/-l3/' Makefile
-              ;;
-          esac
-          PKG=libclc make ${{ matrix.target }}-pkg || {
+          jobsandload="-j4 -l3"
+          PARALLEL_BUILD=n DEBUG_BUILD=n PKG=libclc make "$[jobsandload}" ${{ matrix.target }}-pkg || {
             echo "Retrying build after failure..."
             sleep 60
-            PKG=libclc make ${{ matrix.target }}-pkg || {
+            PARALLEL_BUILD=n DEBUG_BUILD=n PKG=libclc make "$[jobsandload}" ${{ matrix.target }}-pkg || {
               echo "Retrying build a final time..."
               sleep 60
-              PKG=libclc make ${{ matrix.target }}-pkg
+              PARALLEL_BUILD=n DEBUG_BUILD=n PKG=libclc make "$[jobsandload}" ${{ matrix.target }}-pkg
             }
           }
           
@@ -148,50 +144,20 @@ jobs:
             echo "error: find / -type d -iname host -or -iname target 2>/dev/null"
           fi
           
+          
           # Create package
           cd ${GITHUB_WORKSPACE}/output/${{ matrix.target }} || exit 1
           staging="$(cat build/staging.dir)"
           
-          find ./ -type f \( -path '*/llvm/*' -or -path '*/host-llvm*' -or -path '*/clang/*' -or -path '*/host-clang/*' -or -path '*/libclc/*' -or -path '*/host-libclc/*' \) -and -name '.files-list-host.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+host\/+g' >host-files.txt
-          find ./ -type f \( -path '*/llvm/*' -or -path '*/host-llvm*' -or -path '*/clang/*' -or -path '*/host-clang/*' -or -path '*/libclc/*' -or -path '*/host-libclc/*' \) -and -name '.files-list-staging.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+${staging}\/+g' >staging-files.txt
-          find ./ -type f \( -path '*/llvm/*' -or -path '*/host-llvm*' -or -path '*/clang/*' -or -path '*/host-clang/*' -or -path '*/libclc/*' -or -path '*/host-libclc/*' \) -and -name '.files-list.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+\.\/+target\/+g' >target-files.txt
+          find ./ -type f \( -path '*/llvm/*' -or -path '*/host-llvm*' -or -path '*/clang/*' -or -path '*/host-clang/*' -or -path '*/libclc/*' -or -path '*/host-libclc/*' \) -and -name '.files-list-host.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+^\./+host/+g' >host-files.txt
+          find ./ -type f \( -path '*/llvm/*' -or -path '*/host-llvm*' -or -path '*/clang/*' -or -path '*/host-clang/*' -or -path '*/libclc/*' -or -path '*/host-libclc/*' \) -and -name '.files-list-staging.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e "s+^\./+${staging}/+g" >staging-files.txt
+          find ./ -type f \( -path '*/llvm/*' -or -path '*/host-llvm*' -or -path '*/clang/*' -or -path '*/host-clang/*' -or -path '*/libclc/*' -or -path '*/host-libclc/*' \) -and -name '.files-list.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+^\./+target/+g' >target-files.txt
           
           cat host-files.txt staging-files.txt target-files.txt >filelist.txt
+          find ./ -type f \( -path '*/target/*' -or -path '*/host/*' \) -and \( -ipath '*llvm*' -or -ipath '*clang*' -or -ipath '*libclc*' \) -print | sed -e 's+^\./++g' >>filelist.txt
           sort -o sortedfilelist.txt -u filelist.txt
           
-          mkdir -p host target
-          find ./ -type d \( -path '*/llvm/*' -or -path '*/host-llvm*' -or -path '*/clang/*' -or -path '*/host-clang/*' -or -path '*/libclc/*' -or -path '*/host-libclc/*' \) -and \( -name 'target' -or -name 'host' \) | while read -r source_path || [ -n "${source_path}" ]; do
-            cd ${source_path}
-            
-            if ! find ./ -type d -not \( -name '.' -or -name '..' \) | sed 's|^\./||' | xargs -d "\n" -I{} -n1 -r -- mkdir -p "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/${source_path##*/}/{}"
-            then
-              echo "error: find and mkdir"
-            fi
-            
-            if ! find ./ -type f | sed 's|^\./||' | while read -r source_file || [ -n "${source_file}" ]; do
-              if [ ! -e "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/${source_path##*/}/${source_file}" ]; then
-                mv "${source_file}" "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/${source_path##*/}/${source_file}" || :
-              fi
-            done
-            then
-              echo "error: find and mv"
-            fi
-            
-            cd ${GITHUB_WORKSPACE}/output/${{ matrix.target }}
-          done
-          
-          
-          # DEBUG
-          if ! tar czf "${GITHUB_WORKSPACE}/host-target-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz" "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/host" "${GITHUB_WORKSPACE}/output/${{ matrix.target }}/target"
-          then
-            echo "error: tar czf ${GITHUB_WORKSPACE}/host-target-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz ${GITHUB_WORKSPACE}/output/${{ matrix.target }}/host ${GITHUB_WORKSPACE}/output/${{ matrix.target }}/target"
-          fi
-          
-          
-          if ! tar czf "${GITHUB_WORKSPACE}/reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz" -T sortedfilelist.txt
-          then
-            echo "error: tar czf ${GITHUB_WORKSPACE}/reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz -T sortedfilelist.txt"
-          fi
+          XZ_OPT=-9 tar cfJ --remove-files --to-stdout --verbatim-files-from -T sortedfilelist.txt | split -b 2000M -d - "${GITHUB_WORKSPACE}/reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.xz.part"
           
           echo "dorelease=true" >> "$GITHUB_OUTPUT"
 
@@ -205,10 +171,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}
+          compression-level: 0
           path: |
-            reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz
-            output/${{ matrix.target }}/*.txt
-            host-target-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.gz
+            reglinux-llvm-${{ inputs.llvmversion }}-*
+            
 
   create_release:
     name: Create release
@@ -226,7 +192,7 @@ jobs:
         uses: softprops/action-gh-release@master
         with:
           repository: ${{ github.repository_owner }}/REG-llvm-binaries
-          files: reglinux-llvm-${{ inputs.llvmversion }}-*.tar.gz
+          files: reglinux-llvm-${{ inputs.llvmversion }}-*
           tag_name: ${{ inputs.llvmversion }}
           prerelease: false
           make_latest: true
