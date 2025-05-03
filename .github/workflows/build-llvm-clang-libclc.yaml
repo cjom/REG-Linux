@@ -96,8 +96,8 @@ jobs:
           # Hack needed to retrieve the proper staging name directory when packaging
           sed -i '/stamp_staging_installed\:/,/stamp_images_installed\:/ s:^$:\techo "host/\$(GNU_TARGET_NAME)/sysroot" > "\$(BUILD_DIR)/staging.dir"\n:' buildroot/package/pkg-generic.mk
           
-          # Build with 3 trials in case of download failure that sometimes happens
           jobsandload="-j4 -l3"
+          # Build with 3 trials in case of download failure that sometimes happens
           PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make ${jobsandload} ${{ matrix.target }}-pkg || {
             echo "Retrying build after failure..."
             sleep 60
@@ -116,6 +116,7 @@ jobs:
               jobsandload="-j4 -l3"
               ;;
           esac
+          # Build with 3 trials in case of download failure that sometimes happens
           PARALLEL_BUILD=n DEBUG_BUILD=n PKG=clang make ${jobsandload} ${{ matrix.target }}-pkg || {
             echo "Retrying build after failure..."
             sleep 60
@@ -126,7 +127,13 @@ jobs:
             }
           }
           
+          case ${{ matrix.arch }} in
+            riscv64)
+              sed -i 's/ -mabi=lp64d -mcpu=sifive-u74//' configs/reglinux-jh7110.board
+              ;;
+          esac
           jobsandload="-j4 -l3"
+          # Build with 3 trials in case of download failure that sometimes happens
           PARALLEL_BUILD=n DEBUG_BUILD=n PKG=libclc make ${jobsandload} ${{ matrix.target }}-pkg || {
             echo "Retrying build after failure..."
             sleep 60
@@ -136,14 +143,6 @@ jobs:
               PARALLEL_BUILD=n DEBUG_BUILD=n PKG=libclc make ${jobsandload} ${{ matrix.target }}-pkg
             }
           }
-          
-          
-          # DEBUG
-          if ! find / -type d -iname host -or -iname target 2>/dev/null
-          then
-            echo "error: find / -type d -iname host -or -iname target 2>/dev/null"
-          fi
-          
           
           # Create package
           cd ${GITHUB_WORKSPACE}/output/${{ matrix.target }} || exit 1
@@ -157,13 +156,14 @@ jobs:
           find ./ -type f \( -path '*/target/*' -or -path '*/host/*' \) -and \( -ipath '*llvm*' -or -ipath '*clang*' -or -ipath '*libclc*' \) -print | sed -e 's+^\./++g' >>filelist.txt
           sort -o sortedfilelist.txt -u filelist.txt
           
-          XZ_OPT=-9 tar cfJ --remove-files --to-stdout --verbatim-files-from -T sortedfilelist.txt | split -b 2000M -d - "${GITHUB_WORKSPACE}/reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.xz.part"
+          XZ_OPT=-9 tar cfJ - --remove-files --to-stdout --verbatim-files-from -T sortedfilelist.txt | split -b 2000M -d - "${GITHUB_WORKSPACE}/reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.xz."
           
           echo "dorelease=true" >> "$GITHUB_OUTPUT"
 
       - name: Start tmate session (SSH)
         if: ${{ failure() }}
         uses: mxschmitt/action-tmate@v3.22
+        timeout-minutes: 60
 
       - name: upload_artifacts_${{ matrix.arch }}
         if: ${{ steps.compile_llvm_step.outputs.dorelease == 'true' && ! cancelled() }}
@@ -172,9 +172,7 @@ jobs:
         with:
           name: reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}
           compression-level: 0
-          path: |
-            reglinux-llvm-${{ inputs.llvmversion }}-*
-            
+          path: reglinux-llvm-${{ inputs.llvmversion }}-*
 
   create_release:
     name: Create release
@@ -192,6 +190,7 @@ jobs:
         uses: softprops/action-gh-release@master
         with:
           repository: ${{ github.repository_owner }}/REG-llvm-binaries
+          token: ${{ secrets.REG_LINUX }}
           files: reglinux-llvm-${{ inputs.llvmversion }}-*
           tag_name: ${{ inputs.llvmversion }}
           prerelease: false
