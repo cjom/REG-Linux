@@ -78,10 +78,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}*
+          path: ./
+          merge-multiple: true
+
       - name: Compile llvm
         id: compile_llvm_step
         shell: bash
         run: |
+          if [ -f reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.xz.00 ]; then
+            mv reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.xzreglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.xz
+            echo "dorelease=true" >> "$GITHUB_OUTPUT"
+          else
+          
+          
           # Patch Makefile
           owner="${{ github.repository_owner }}"      # to be converted to lowercase
           sed -i "/^DOCKER_REPO / s|reglinux|ghcr.io/${owner,,}|" Makefile
@@ -89,6 +102,9 @@ jobs:
           
           # Disable CCACHE
           sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
+          
+          # Fix for riscv64
+          sed -i 's/ -mabi=lp64d -mcpu=sifive-u74//' configs/reglinux-jh7110.board
           
           # After each package is installed, delete downloaded files
           sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n\tdf -h\n\tfree -h\n:' buildroot/package/pkg-generic.mk
@@ -127,11 +143,6 @@ jobs:
             }
           }
           
-          case ${{ matrix.arch }} in
-            riscv64)
-              sed -i 's/ -mabi=lp64d -mcpu=sifive-u74//' configs/reglinux-jh7110.board
-              ;;
-          esac
           jobsandload="-j4 -l3"
           # Build with 3 trials in case of download failure that sometimes happens
           PARALLEL_BUILD=n DEBUG_BUILD=n PKG=libclc make ${jobsandload} ${{ matrix.target }}-pkg || {
@@ -156,9 +167,12 @@ jobs:
           find ./ -type f \( -path '*/target/*' -or -path '*/host/*' \) -and \( -ipath '*llvm*' -or -ipath '*clang*' -or -ipath '*libclc*' \) -print | sed -e 's+^\./++g' >>filelist.txt
           sort -o sortedfilelist.txt -u filelist.txt
           
-          XZ_OPT=-9 tar cfJ - --remove-files --to-stdout --verbatim-files-from -T sortedfilelist.txt | split -b 2000M -d - "${GITHUB_WORKSPACE}/reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.xz."
+          XZ_OPT=-9 tar cJf "${GITHUB_WORKSPACE}/reglinux-llvm-${{ inputs.llvmversion }}-${{ matrix.arch }}.tar.xz" --verbatim-files-from -T sortedfilelist.txt
           
           echo "dorelease=true" >> "$GITHUB_OUTPUT"
+          
+          
+          fi
 
       - name: Start tmate session (SSH)
         if: ${{ failure() }}
@@ -190,7 +204,7 @@ jobs:
         uses: softprops/action-gh-release@master
         with:
           repository: ${{ github.repository_owner }}/REG-llvm-binaries
-          token: ${{ secrets.REG_LINUX }}
+          token: ${{ secrets.REG_TOKEN }}
           files: reglinux-llvm-${{ inputs.llvmversion }}-*
           tag_name: ${{ inputs.llvmversion }}
           prerelease: false
