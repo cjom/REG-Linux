@@ -1,0 +1,26 @@
+diff --git a/package/bpftrace/Config.in b/package/bpftrace/Config.in
+index 8af94443ab..2a548f68aa 100644
+--- a/package/bpftrace/Config.in
++++ b/package/bpftrace/Config.in
+@@ -6,10 +6,8 @@ config BR2_PACKAGE_BPFTRACE_ARCH_SUPPORTS
+ 
+ config BR2_PACKAGE_BPFTRACE
+ 	bool "bpftrace"
+-	depends on BR2_PACKAGE_BPFTRACE_ARCH_SUPPORTS
+ 	depends on BR2_USE_MMU # bcc -> python3
+ 	depends on BR2_TOOLCHAIN_HAS_SYNC_4 # libbpf
+-	depends on BR2_PACKAGE_LLVM_ARCH_SUPPORTS # bcc
+ 	depends on BR2_TOOLCHAIN_USES_GLIBC # bcc
+ 	depends on BR2_TOOLCHAIN_GCC_AT_LEAST_7 # bcc -> clang
+ 	depends on BR2_INSTALL_LIBSTDCPP # bcc -> clang
+@@ -23,9 +21,8 @@ config BR2_PACKAGE_BPFTRACE
+ 	select BR2_PACKAGE_CEREAL
+ 	select BR2_PACKAGE_ELFUTILS
+ 	select BR2_PACKAGE_LIBBPF
+-	select BR2_PACKAGE_LLVM
++	select BR2_PACKAGE_REGLINUX_LLVM
+ 	# LLVM RTTI mendatory: https://github.com/iovisor/bpftrace/issues/1156
+-	select BR2_PACKAGE_LLVM_RTTI
+ 	select BR2_PACKAGE_XZ
+ 	help
+ 	  bpftrace is a high-level tracing language for Linux enhanced

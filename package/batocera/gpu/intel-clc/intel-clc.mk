@@ -28,11 +28,10 @@ INTEL_CLC_CONF_OPTS = \
 HOST_INTEL_CLC_DEPENDENCIES = \
 	host-bison \
 	host-flex \
-	host-llvm \
+	reglinux-llvm \
 	host-python-mako \
 	host-expat \
 	libdrm \
-	host-libclc \
 	host-spirv-tools \
 	spirv-headers \
 	host-zlib

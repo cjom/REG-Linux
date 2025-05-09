@@ -1,20 +1,28 @@
 config BR2_PACKAGE_REGLINUX_LLVM_BUILD_FROM_SOURCE
-    bool "reglinux-llvm-build-from-source"
-    default n
+	bool "reglinux-llvm-build-from-source"
+	default n
 
 config BR2_PACKAGE_REGLINUX_HAS_LLVM
-    bool
+	bool
 
 config BR2_PACKAGE_REGLINUX_LLVM
-    bool "reglinux-llvm"
-    depends on BR2_PACKAGE_LLVM_ARCH_SUPPORTS
-    depends on BR2_TOOLCHAIN_GCC_AT_LEAST_7
-    depends on BR2_TOOLCHAIN_HAS_THREADS
-    depends on BR2_INSTALL_LIBSTDCPP
-    depends on !BR2_TOOLCHAIN_HAS_GCC_BUG_64735 # std::shared_future
-    depends on !BR2_STATIC_LIBS
-    depends on BR2_USE_WCHAR            # std::wstring
-    depends on BR2_HOST_GCC_AT_LEAST_7  # host-llvm
+	bool "reglinux-llvm"
+	depends on BR2_PACKAGE_LLVM_ARCH_SUPPORTS
+	depends on BR2_TOOLCHAIN_GCC_AT_LEAST_7
+	depends on BR2_TOOLCHAIN_HAS_THREADS
+	depends on BR2_INSTALL_LIBSTDCPP
+	depends on !BR2_TOOLCHAIN_HAS_GCC_BUG_64735 # std::shared_future
+	depends on !BR2_STATIC_LIBS
+	depends on BR2_USE_WCHAR			# std::wstring
+	depends on BR2_HOST_GCC_AT_LEAST_7  # host-llvm
 
-    help
-        Prebuilt (or built from source) REG-Linux LLVM/clang/libclc
+	select BR2_PACKAGE_LLVM         if BR2_PACKAGE_REGLINUX_LLVM_BUILD_FROM_SOURCE
+	select BR2_PACKAGE_LLVM_BPF     if BR2_PACKAGE_REGLINUX_LLVM_BUILD_FROM_SOURCE
+	select BR2_PACKAGE_LLVM_RTTI    if BR2_PACKAGE_REGLINUX_LLVM_BUILD_FROM_SOURCE
+	select BR2_PACKAGE_CLANG        if BR2_PACKAGE_REGLINUX_LLVM_BUILD_FROM_SOURCE
+	select BR2_PACKAGE_LIBCLC       if BR2_PACKAGE_REGLINUX_LLVM_BUILD_FROM_SOURCE
+
+	select BR2_PACKAGE_REGLINUX_HAS_LLVM
+
+	help
+		Prebuilt (or built from source) REG-Linux LLVM/clang/libclc

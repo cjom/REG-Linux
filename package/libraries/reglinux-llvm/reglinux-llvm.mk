@@ -4,9 +4,13 @@
 #
 ################################################################################
 
+ifneq ($(BR2_PACKAGE_REGLINUX_LLVM_BUILD_FROM_SOURCE),y)
+
 # 19.1.7
 REGLINUX_LLVM_VERSION = $(LLVM_PROJECT_VERSION)
-REGLINUX_LLVM_SITE = $(call github,REG-Linux,REG-llvm-binaries,$(REGLINUX_LLVM_VERSION))
+REGLINUX_LLVM_SOURCE = reglinux-llvm-$(REGLINUX_LLVM_VERSION)-$(REGLINUX_LLVM_ARCH).tar.xz
+REGLINUX_LLVM_SITE_METHOD=git
+REGLINUX_LLVM_SITE = https://github.com/REG-Linux/REG-llvm-binaries.git
 
 REGLINUX_LLVM_DEPENDENCIES = host-python3
 
@@ -35,9 +39,6 @@ else ifeq ($(BR2_x86_64),y)
 REGLINUX_LLVM_ARCH = x86_64
 endif
 
-# Compute the archive source file name
-REGLINUX_LLVM_SOURCE = reglinux-llvm-$(REGLINUX_LLVM_VERSION)-$(REGLINUX_LLVM_ARCH).tar.xz
-
 define REGLINUX_LLVM_DOWNLOAD_ARCHIVE
 	echo "Downloading https://github.com/REG-Linux/REG-llvm-binaries/releases/download/$(REGLINUX_LLVM_VERSION)/$(REGLINUX_LLVM_SOURCE)"
 	cd $(@D) && wget https://github.com/REG-Linux/REG-llvm-binaries/releases/download/$(REGLINUX_LLVM_VERSION)/$(REGLINUX_LLVM_SOURCE)
@@ -54,5 +55,4 @@ define REGLINUX_LLVM_INSTALL_TARGET_CMDS
 endef
 
 endif
-
 $(eval $(generic-package))

@@ -158,19 +158,18 @@ jobs:
             sed -i '/stamp_staging_installed\:/,/stamp_images_installed\:/ s:^$:\techo "host/\$(GNU_TARGET_NAME)/sysroot" > "\$(BUILD_DIR)/staging.dir"\n:' buildroot/package/pkg-generic.mk
             
             jobsandload="-j4 -l3"
-            # Build with 3 trials in case of download failure that sometimes happens
-            PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make ${jobsandload} ${{ matrix.target }}-pkg || {
-              echo "Retrying build after failure..."
-              sleep 60
-              PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make ${jobsandload} ${{ matrix.target }}-pkg || {
-                echo "Retrying build a final time..."
-                sleep 60
-                PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make ${jobsandload} ${{ matrix.target }}-pkg
-              }
-            }
-            
             case ${{ matrix.arch }} in
               riscv64|x86_64)
+                # Build with 3 trials in case of download failure that sometimes happens
+                PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make ${jobsandload} ${{ matrix.target }}-pkg || {
+                  echo "Retrying build after failure..."
+                  sleep 60
+                  PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make ${jobsandload} ${{ matrix.target }}-pkg || {
+                    echo "Retrying build a final time..."
+                    sleep 60
+                    PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make ${jobsandload} ${{ matrix.target }}-pkg
+                  }
+                }
                 jobsandload="-j1 -l1"
                 ;;
             esac

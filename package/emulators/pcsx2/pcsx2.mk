@@ -19,8 +19,8 @@ PCSX2_DEPENDENCIES += libsamplerate fmt reglinux-qt6 libcurl kddockwidgets
 PCSX2_DEPENDENCIES += host-libcurl libbacktrace jpeg-turbo webp
 
 # Use clang for performance if available
-ifeq ($(BR2_PACKAGE_CLANG),y)
-PCSX2_DEPENDENCIES += host-clang
+ifeq ($(BR2_PACKAGE_REGLINUX_LLVM),y)
+PCSX2_DEPENDENCIES += reglinux-llvm
 PCSX2_CONF_OPTS += -DCMAKE_C_COMPILER=$(HOST_DIR)/bin/clang
 PCSX2_CONF_OPTS += -DCMAKE_CXX_COMPILER=$(HOST_DIR)/bin/clang++
 PCSX2_CONF_OPTS += -DCMAKE_EXE_LINKER_FLAGS="-lm -lstdc++"

@@ -51,7 +51,7 @@ IMG_MESA3D_CONF_OPTS += -Ddri3=disabled
 endif
 
 ifeq ($(BR2_PACKAGE_IMG_MESA3D_LLVM),y)
-IMG_MESA3D_DEPENDENCIES += host-llvm llvm
+IMG_MESA3D_DEPENDENCIES += reglinux-llvm
 IMG_MESA3D_MESON_EXTRA_BINARIES += llvm-config='$(STAGING_DIR)/usr/bin/llvm-config'
 IMG_MESA3D_CONF_OPTS += -Dllvm=enabled
 else
@@ -63,7 +63,7 @@ endif
 # libMesaOpenCL and CL headers are installed
 ifeq ($(BR2_PACKAGE_IMG_MESA3D_OPENCL),y)
 IMG_MESA3D_PROVIDES += libopencl
-IMG_MESA3D_DEPENDENCIES += clang libclc
+IMG_MESA3D_DEPENDENCIES += reglinux-llvm
 IMG_MESA3D_CONF_OPTS += -Dgallium-opencl=standalone
 else
 IMG_MESA3D_CONF_OPTS += -Dgallium-opencl=disabled

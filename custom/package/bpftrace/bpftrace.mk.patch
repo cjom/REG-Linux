@@ -1,0 +1,13 @@
+diff --git a/package/bpftrace/bpftrace.mk b/package/bpftrace/bpftrace.mk
+index dc4c9728cc..4c59342aeb 100644
+--- a/package/bpftrace/bpftrace.mk
++++ b/package/bpftrace/bpftrace.mk
+@@ -16,7 +16,7 @@ BPFTRACE_DEPENDENCIES = \
+ 	host-bison \
+ 	host-flex \
+ 	libbpf \
+-	llvm \
++	reglinux-llvm \
+ 	xz
+ 
+ # libbfd, libopcodes
