@@ -6,6 +6,9 @@
 
 CLANG_VERSION_MAJOR = $(LLVM_PROJECT_VERSION_MAJOR)
 CLANG_VERSION = $(LLVM_PROJECT_VERSION)
+
+ifeq ($(BR2_PACKAGE_LLVM_BUILD_FROM_SOURCE),y)
+
 CLANG_SITE = $(LLVM_PROJECT_SITE)
 CLANG_SOURCE = clang-$(CLANG_VERSION).src.tar.xz
 CLANG_LICENSE = Apache-2.0 with exceptions
@@ -137,6 +140,56 @@ HOST_CLANG_TOOLCHAIN_WRAPPER_ARGS += -DBR_CROSS_PATH_SUFFIX='".br_real"'
 HOST_CLANG_POST_BUILD_HOOKS += HOST_CLANG_TOOLCHAIN_WRAPPER_BUILD
 HOST_CLANG_POST_INSTALL_HOOKS += HOST_CLANG_TOOLCHAIN_WRAPPER_INSTALL
 HOST_CLANG_POST_INSTALL_HOOKS += HOST_CLANG_INSTALL_WRAPPER_AND_SIMPLE_SYMLINKS
+
+else
+
+# Download pre compiled files
+REGLINUX_CLANG_ARCH = unknown
+ifeq ($(BR2_arm),y)
+ifeq ($(BR2_arm1176jzf_s),y)
+    # bcm2835
+    REGLINUX_CLANG_ARCH = armhf
+else
+    # h3
+    REGLINUX_CLANG_ARCH = armv7
+endif
+else ifeq ($(BR2_aarch64),y)
+ifeq ($(BR2_saphira),y)
+    # Asahi Linux
+    REGLINUX_CLANG_ARCH = asahi
+else
+    # h5, Cortex A53
+    REGLINUX_CLANG_ARCH = aarch64
+endif
+else ifeq ($(BR2_RISCV_64),y)
+# jh7110, RISC-V 64 (rv64gc, aka imafd)
+REGLINUX_CLANG_ARCH = riscv64
+else ifeq ($(BR2_x86_64),y)
+# X86_64 architecture
+REGLINUX_CLANG_ARCH = x86_64
+endif
+
+CLANG_SITE = https://github.com/REG-Linux/REG-llvm-binaries/releases/download/$(CLANG_VERSION)
+CLANG_SOURCE = reglinux-clang-$(CLANG_VERSION)-$(REGLINUX_CLANG_ARCH).tar.xz
+HOST_CLANG_DEPENDENCIES = host-libxml2
+
+define DELETE_CLANG_PATCH_IF_NOT_BUILD_FROM_SOURCE
+	rm -f $(PROJECT_DIR)/buildroot/package/llvm-project/clang/*.patch
+endef
+
+CLANG_PRE_PATCH_HOOKS += DELETE_CLANG_PATCH_IF_NOT_BUILD_FROM_SOURCE
+
+define CLANG_EXTRACT_CMDS
+	# copy the prebuilt stuff to rootfs
+	tar -C $(BUILD_DIR)/../ --exclude='*/.stamp*' -xvf $(DL_DIR)/$(CLANG_DL_SUBDIR)/$(CLANG_SOURCE) build
+endef
+
+define CLANG_INSTALL_TARGET_CMDS
+	# delete the archive from this directory
+	tar -C $(HOST_DIR)/../ -xvf $(DL_DIR)/$(CLANG_DL_SUBDIR)/$(CLANG_SOURCE) host target
+endef
+
+endif
 
 $(eval $(cmake-package))
 $(eval $(host-cmake-package))
