@@ -159,6 +159,9 @@ jobs:
             # Hack needed to retrieve the proper staging name directory when packaging
             sed -i '/stamp_staging_installed\:/,/stamp_images_installed\:/ s:^$:\techo "host/\$(GNU_TARGET_NAME)/sysroot" > "\$(BUILD_DIR)/staging.dir"\n:' buildroot/package/pkg-generic.mk
             
+            # Enable the flag to build LLVM/CLANG/LIBCLC from source
+            sed -i s/#BR2_PACKAGE_LLVM_BUILD_FROM_SOURCE=y/BR2_PACKAGE_LLVM_BUILD_FROM_SOURCE=y/ configs/reglinux-board.common
+            
             jobsandload="-j4 -l3"
             case ${{ matrix.arch }} in
               riscv64|x86_64)
