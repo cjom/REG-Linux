@@ -81,9 +81,15 @@ else ifeq ($(BR2_x86_64),y)
 REGLINUX_LIBCLC_ARCH = x86_64
 endif
 
-LIBCLC_SITE = https://github.com/REG-Linux/REG-llvm-binaries/releases/download/$(LIBCLC_VERSION)
+LIBCLC_SITE = https://github.com/cjom/REG-llvm-binaries/releases/download/$(LIBCLC_VERSION)
 LIBCLC_SOURCE = reglinux-libclc-$(LIBCLC_VERSION)-$(REGLINUX_LIBCLC_ARCH).tar.xz
 LIBCLC_DEPENDENCIES = host-spirv-llvm-translator
+
+define DELETE_LIBCLC_PATCH_IF_NOT_BUILD_FROM_SOURCE
+	rm -f $(PROJECT_DIR)/buildroot/package/llvm-project/libclc/*.hash
+endef
+
+LIBCLC_PRE_PATCH_HOOKS += DELETE_LIBCLC_PATCH_IF_NOT_BUILD_FROM_SOURCE
 
 define LIBCLC_EXTRACT_CMDS
 	# copy the prebuilt stuff to rootfs

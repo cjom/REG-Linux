@@ -347,12 +347,12 @@ else ifeq ($(BR2_x86_64),y)
 REGLINUX_LLVM_ARCH = x86_64
 endif
 
-LLVM_SITE = https://github.com/REG-Linux/REG-llvm-binaries/releases/download/$(LLVM_VERSION)
+LLVM_SITE = https://github.com/cjom/REG-llvm-binaries/releases/download/$(LLVM_VERSION)
 LLVM_SOURCE = reglinux-llvm-$(LLVM_VERSION)-$(REGLINUX_LLVM_ARCH).tar.xz
 HOST_LLVM_DEPENDENCIES = host-python3
 
 define DELETE_LLVM_PATCH_IF_NOT_BUILD_FROM_SOURCE
-	rm -f $(PROJECT_DIR)/buildroot/package/llvm-project/llvm/*.patch
+	rm -f $(PROJECT_DIR)/buildroot/package/llvm-project/llvm/*.patch $(PROJECT_DIR)/buildroot/package/llvm-project/llvm/*.hash
 endef
 
 LLVM_PRE_PATCH_HOOKS += DELETE_LLVM_PATCH_IF_NOT_BUILD_FROM_SOURCE

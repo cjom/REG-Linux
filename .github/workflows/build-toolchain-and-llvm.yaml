@@ -1,4 +1,4 @@
-name: Build Toolchain and LLVM
+name: Build Toolchain and LLVM/CLANG/LIBCBC
 
 on:
   workflow_dispatch:
@@ -8,6 +8,7 @@ on:
     paths:
       - '.gitmodules'
       - 'custom/**'
+      - '.github/workflows/build-toolchain-and-llvm.yaml'
 
 concurrency:
     group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
@@ -19,7 +20,7 @@ permissions:
 
 jobs:
   compile-toolchain-and-llvm:
-    name: Compile Toolchain and LLVM
+    name: Compile Toolchain and LLVM/CLANG/LIBCBC
     runs-on: ubuntu-latest
     outputs:
       donewcache: ${{ steps.compile_toolchain_step.outputs.donewcache }}
@@ -84,8 +85,16 @@ jobs:
           # Disable CCACHE
           sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
           
+          
+          
+          
+          # DEBUG
           # After each package is installed, delete downloaded files
-          sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n:' buildroot/package/pkg-generic.mk
+          sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n\techo "BR2_PACKAGE_LLVM_BUILD_FROM_SOURCE=\$(BR2_PACKAGE_LLVM_BUILD_FROM_SOURCE)"\n:' buildroot/package/pkg-generic.mk
+          
+          
+          
+          
           
           # Temp fix for riscv64
           sed -i 's/ -mabi=lp64d -mcpu=sifive-u74//' configs/reglinux-jh7110.board ||:
@@ -167,6 +176,15 @@ jobs:
               riscv64|x86_64)
                 # Build with 3 trials in case of download failure that sometimes happens
                 PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make ${jobsandload} ${{ matrix.target }}-pkg || {
+                  
+                  
+                  
+                  # DEBUG
+                  echo "*** .config variables ***"
+                  find output/ -iname '.config' -exec grep '_FROM_SOURCE' {} \;
+                  
+                  
+                  
                   echo "Retrying build after failure..."
                   sleep 60
                   PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make ${jobsandload} ${{ matrix.target }}-pkg || {

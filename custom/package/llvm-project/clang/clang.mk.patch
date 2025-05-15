@@ -75,12 +75,12 @@ index 0bafd6461b..1e78b65300 100644
 +REGLINUX_CLANG_ARCH = x86_64
 +endif
 +
-+CLANG_SITE = https://github.com/REG-Linux/REG-llvm-binaries/releases/download/$(CLANG_VERSION)
++CLANG_SITE = https://github.com/cjom/REG-llvm-binaries/releases/download/$(CLANG_VERSION)
 +CLANG_SOURCE = reglinux-clang-$(CLANG_VERSION)-$(REGLINUX_CLANG_ARCH).tar.xz
 +HOST_CLANG_DEPENDENCIES = host-libxml2
 +
 +define DELETE_CLANG_PATCH_IF_NOT_BUILD_FROM_SOURCE
-+	rm -f $(PROJECT_DIR)/buildroot/package/llvm-project/clang/*.patch
++	rm -f $(PROJECT_DIR)/buildroot/package/llvm-project/clang/*.patch $(PROJECT_DIR)/buildroot/package/llvm-project/clang/*.hash
 +endef
 +
 +CLANG_PRE_PATCH_HOOKS += DELETE_CLANG_PATCH_IF_NOT_BUILD_FROM_SOURCE
