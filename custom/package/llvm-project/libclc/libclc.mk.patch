@@ -1,5 +1,5 @@
 diff --git a/package/llvm-project/libclc/libclc.mk b/package/llvm-project/libclc/libclc.mk
-index 9f303d6d2f..e07f629ea8 100644
+index 9f303d6d2f..37e9560a68 100644
 --- a/package/llvm-project/libclc/libclc.mk
 +++ b/package/llvm-project/libclc/libclc.mk
 @@ -3,14 +3,22 @@
@@ -27,7 +27,7 @@ index 9f303d6d2f..e07f629ea8 100644
  LIBCLC_INSTALL_STAGING = YES
  
  # CMAKE_*_COMPILER_FORCED=ON skips testing the tools and assumes
-@@ -39,4 +47,56 @@ LIBCLC_CONF_OPTS = \
+@@ -39,4 +47,62 @@ LIBCLC_CONF_OPTS = \
  	-DCMAKE_CXX_COMPILER="$(CMAKE_HOST_CXX_COMPILER)" \
  	-DLLVM_CONFIG="$(HOST_DIR)/bin/llvm-config"
  
