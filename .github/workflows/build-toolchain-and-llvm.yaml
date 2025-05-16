@@ -85,16 +85,8 @@ jobs:
           # Disable CCACHE
           sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
           
-          
-          
-          
-          # DEBUG
           # After each package is installed, delete downloaded files
-          sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n\techo "BR2_PACKAGE_LLVM_BUILD_FROM_SOURCE=\$(BR2_PACKAGE_LLVM_BUILD_FROM_SOURCE)"\n:' buildroot/package/pkg-generic.mk
-          
-          
-          
-          
+          sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n:' buildroot/package/pkg-generic.mk
           
           # Temp fix for riscv64
           sed -i 's/ -mabi=lp64d -mcpu=sifive-u74//' configs/reglinux-jh7110.board ||:
@@ -176,15 +168,6 @@ jobs:
               riscv64|x86_64)
                 # Build with 3 trials in case of download failure that sometimes happens
                 PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make ${jobsandload} ${{ matrix.target }}-pkg || {
-                  
-                  
-                  
-                  # DEBUG
-                  echo "*** .config variables ***"
-                  find output/ -iname '.config' -exec grep '_FROM_SOURCE' {} \;
-                  
-                  
-                  
                   echo "Retrying build after failure..."
                   sleep 60
                   PARALLEL_BUILD=n DEBUG_BUILD=n PKG=llvm make ${jobsandload} ${{ matrix.target }}-pkg || {
@@ -227,22 +210,25 @@ jobs:
             cd ${GITHUB_WORKSPACE}/output/${{ matrix.target }} || exit 1
             staging="$(cat build/staging.dir)"
             
-            find ./build -type f -ipath '*/*llvm*/*' -not \( -iname '*.cpp.o*' -or -iname '*.c.o*' \) -print | sed -e 's+^\./++g' >llvm-filelist.txt
-            find ./ -type f \( -ipath '*/llvm/*' -or -ipath '*/host-llvm*' \) -and -iname '.files-list-host.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+^\./+host/+g' >>llvm-filelist.txt
-            find ./ -type f \( -ipath '*/llvm/*' -or -ipath '*/host-llvm*' \) -and -iname '.files-list-staging.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e "s+^\./+${staging}/+g" >>llvm-filelist.txt
-            find ./ -type f \( -ipath '*/llvm/*' -or -ipath '*/host-llvm*' \) -and -iname '.files-list.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+^\./+target/+g' >>llvm-filelist.txt
+            cat build/*llvm-*/.files-list-host.txt | cut -d ',' -f 2 | sed -e 's+^./+host/+g' >llvm-filelist.txt
+            cat build/*llvm-*/.files-list-staging.txt | cut -d ',' -f 2 | sed -e "s+^./+${staging}/+g" >>llvm-filelist.txt
+            cat build/*llvm-*/.files-list.txt | cut -d ',' -f 2 | sed -e 's+^./+target/+g' >>llvm-filelist.txt
+            find host/ -type f -ipath '*llvm*' >>llvm-filelist.txt
+            find target/ -type f -ipath '*llvm*' >>llvm-filelist.txt
             sort -o sorted-llvm-filelist.txt -u llvm-filelist.txt
             
-            find ./build -type f -ipath '*/*clang*/*' -not \( -iname '*.cpp.o*' -or -iname '*.c.o*' \) -print | sed -e 's+^\./++g' >clang-filelist.txt
-            find ./ -type f \( -ipath '*/clang/*' -or -ipath '*/host-clang/*' \) -and -iname '.files-list-host.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+^\./+host/+g' >>clang-filelist.txt
-            find ./ -type f \( -ipath '*/clang/*' -or -ipath '*/host-clang/*' \) -and -iname '.files-list-staging.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e "s+^\./+${staging}/+g" >>clang-filelist.txt
-            find ./ -type f \( -ipath '*/clang/*' -or -ipath '*/host-clang/*' \) -and -iname '.files-list.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+^\./+target/+g' >>clang-filelist.txt
+            cat build/*clang-*/.files-list-host.txt | cut -d ',' -f 2 | sed -e 's+^./+host/+g' >clang-filelist.txt
+            cat build/*clang-*/.files-list-staging.txt | cut -d ',' -f 2 | sed -e "s+^./+${staging}/+g" >>clang-filelist.txt
+            cat build/*clang-*/.files-list.txt | cut -d ',' -f 2 | sed -e 's+^./+target/+g' >>clang-filelist.txt
+            find host/ -type f -ipath '*clang*' >>clang-filelist.txt
+            find target/ -type f -ipath '*clang*' >>clang-filelist.txt
             sort -o sorted-clang-filelist.txt -u clang-filelist.txt
             
-            find ./build -type f -ipath '*/*libclc*/*' -not \( -iname '*.cpp.o*' -or -iname '*.c.o*' \) -print | sed -e 's+^\./++g' >libclc-filelist.txt
-            find ./ -type f \( -ipath '*/libclc/*' -or -ipath '*/host-libclc/*' \) -and -iname '.files-list-host.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+^\./+host/+g' >>libclc-filelist.txt
-            find ./ -type f \( -ipath '*/libclc/*' -or -ipath '*/host-libclc/*' \) -and -iname '.files-list-staging.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e "s+^\./+${staging}/+g" >>libclc-filelist.txt
-            find ./ -type f \( -ipath '*/libclc/*' -or -ipath '*/host-libclc/*' \) -and -iname '.files-list.txt' -exec cat {} \+ | cut -d ',' -f 2 | sed -e 's+^\./+target/+g' >>libclc-filelist.txt
+            cat build/*libclc-*/.files-list-host.txt | cut -d ',' -f 2 | sed -e 's+^./+host/+g' >libclc-filelist.txt
+            cat build/*libclc-*/.files-list-staging.txt | cut -d ',' -f 2 | sed -e "s+^./+${staging}/+g" >>libclc-filelist.txt
+            cat build/*libclc-*/.files-list.txt | cut -d ',' -f 2 | sed -e 's+^./+target/+g' >>libclc-filelist.txt
+            find host/ -type f -ipath '*libclc*' -or -ipath '*/clc/*' -or -iname 'prepare_builtins' >>libclc-filelist.txt
+            find target/ -type f -ipath '*libclc*' -or -ipath '*/clc/*' -or -iname 'prepare_builtins' >>libclc-filelist.txt
             sort -o sorted-libclc-filelist.txt -u libclc-filelist.txt
             
             XZ_OPT=-9 tar cJf "${GITHUB_WORKSPACE}/reglinux-llvm-${llvmversion}-${{ matrix.arch }}.tar.xz" --verbatim-files-from -T sorted-llvm-filelist.txt
