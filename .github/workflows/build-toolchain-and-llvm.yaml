@@ -231,9 +231,9 @@ jobs:
             find target/ -type f -ipath '*libclc*' -or -ipath '*/clc/*' -or -iname 'prepare_builtins' >>libclc-filelist.txt
             sort -o sorted-libclc-filelist.txt -u libclc-filelist.txt
             
-            XZ_OPT=-9 tar cJf "${GITHUB_WORKSPACE}/reglinux-llvm-${llvmversion}-${{ matrix.arch }}.tar.xz" --verbatim-files-from -T sorted-llvm-filelist.txt
-            XZ_OPT=-9 tar cJf "${GITHUB_WORKSPACE}/reglinux-clang-${llvmversion}-${{ matrix.arch }}.tar.xz" --verbatim-files-from -T sorted-clang-filelist.txt
-            XZ_OPT=-9 tar cJf "${GITHUB_WORKSPACE}/reglinux-libclc-${llvmversion}-${{ matrix.arch }}.tar.xz" --verbatim-files-from -T sorted-libclc-filelist.txt
+            XZ_OPT=-9 tar cJf "${GITHUB_WORKSPACE}/reglinux-llvm-${llvmversion}-${{ matrix.arch }}.tar.xz" --verbatim-files-from -T sorted-llvm-filelist.txt || :
+            XZ_OPT=-9 tar cJf "${GITHUB_WORKSPACE}/reglinux-clang-${llvmversion}-${{ matrix.arch }}.tar.xz" --verbatim-files-from -T sorted-clang-filelist.txt || :
+            XZ_OPT=-9 tar cJf "${GITHUB_WORKSPACE}/reglinux-libclc-${llvmversion}-${{ matrix.arch }}.tar.xz" --verbatim-files-from -T sorted-libclc-filelist.txt || :
             echo "dorelease=true" >> "$GITHUB_OUTPUT"
           fi
 
