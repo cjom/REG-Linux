@@ -89,6 +89,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create cached folder
+        id: create_cached_folder
+        shell: bash
+        run: mkdir -p output/${{ matrix.target }}
+
       - name: Restore toolchain cache
         id: restore_toolchain_cache
         uses: actions/cache/restore@v4
