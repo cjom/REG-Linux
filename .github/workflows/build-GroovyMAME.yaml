@@ -92,14 +92,14 @@ jobs:
       - name: Create cached folder
         id: create_cached_folder
         shell: bash
-        run: mkdir -p output/${{ matrix.target }}
+        run: mkdir -p output
 
       - name: Restore toolchain cache
         id: restore_toolchain_cache
         uses: actions/cache/restore@v4
         with:
-          path: ./output/${{ matrix.target }}
-          key: toolchain-${{ matrix.arch }}
+          path: ./output
+          key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/**', '.gitmodules') }}
           fail-on-cache-miss: true
 
       - name: Compile ${{ matrix.target }}

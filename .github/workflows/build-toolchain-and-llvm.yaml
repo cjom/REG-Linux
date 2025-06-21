@@ -125,7 +125,7 @@ jobs:
         id: save_toolchain_cache
         uses: actions/cache/save@v4
         with:
-          path: ./output/${{ matrix.target }}
+          path: ./output
           key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/**', '.gitmodules') }}
 
       - name: Restore toolchain cache
@@ -133,7 +133,7 @@ jobs:
         id: restore_toolchain_cache
         uses: actions/cache/restore@v4
         with:
-          path: ./output/${{ matrix.target }}
+          path: ./output
           key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/**', '.gitmodules') }}
 
       - name: Compile LLVM
