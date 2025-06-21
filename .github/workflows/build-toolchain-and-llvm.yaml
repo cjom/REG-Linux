@@ -42,6 +42,22 @@ jobs:
             arch: riscv64
           - target: x86_64
             arch: x86_64
+          - target: bcm2711
+            arch: aarch64
+          - target: bcm2712
+            arch: aarch64
+          - target: rk3326
+            arch: aarch64
+          - target: rk3399
+            arch: aarch64
+          - target: rk3588
+            arch: aarch64
+          - target: s905gen3
+            arch: aarch64
+          - target: s922x
+            arch: aarch64
+          - target: x86_64_v3
+            arch: x86_64
       fail-fast: false
 
     steps:
@@ -63,7 +79,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ github.token }}
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -113,7 +129,7 @@ jobs:
                 sleep 60
                 PARALLEL_BUILD=n DEBUG_BUILD=n PKG=alsa-lib make -j4 -l4 ${{ matrix.target }}-pkg
               }
-            }            
+            }
             echo "donewcache=true" >> "$GITHUB_OUTPUT"
             for id in $(gh cache list --key toolchain-${{ matrix.arch }} --json id --jq '.[].id'); do
               gh cache delete $id ||:
@@ -137,6 +153,7 @@ jobs:
           key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/**', '.gitmodules') }}
 
       - name: Compile LLVM
+        if: ${{ ( matrix.target == 'h5' || matrix.target == 'bcm2835' || matrix.target == 'h3' || matrix.target == 'asahi' || matrix.target == 'jh7110' || matrix.target == 'x86_64' ) && ! cancelled() }}
         id: compile_llvm_step
         shell: bash
         run: |
