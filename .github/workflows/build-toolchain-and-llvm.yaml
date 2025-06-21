@@ -63,7 +63,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ github.token }}
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -113,7 +113,7 @@ jobs:
                 sleep 60
                 PARALLEL_BUILD=n DEBUG_BUILD=n PKG=alsa-lib make -j4 -l4 ${{ matrix.target }}-pkg
               }
-            }            
+            }
             echo "donewcache=true" >> "$GITHUB_OUTPUT"
             for id in $(gh cache list --key toolchain-${{ matrix.arch }} --json id --jq '.[].id'); do
               gh cache delete $id ||:
