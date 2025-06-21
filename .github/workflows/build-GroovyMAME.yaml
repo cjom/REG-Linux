@@ -28,14 +28,12 @@ env:
 jobs:
   build:
     name: Build REG-linux GroovyMAME
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     outputs:
       mameversion: ${{ steps.compile_step.outputs.mameversion }}
       docache: ${{ false || steps.compile_step.outputs.docache }}
     strategy:
       matrix:
-        # asahi, x86_64 and x86_64_v3 are compiled on next stage (when compiling lr-mame) using self-hosted runner
-        os: [ubuntu-latest]
         target: [bcm2711, bcm2712, h5, jh7110, rk3326, rk3399, rk3588, s905gen3, s922x, asahi, x86_64, x86_64_v3]
         include:
           - arch: aarch64
