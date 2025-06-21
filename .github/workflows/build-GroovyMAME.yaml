@@ -99,7 +99,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ./output/${{ matrix.target }}
-          key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/**', '.gitmodules') }}
+          key: toolchain-${{ matrix.arch }}
           fail-on-cache-miss: true
 
       - name: Compile ${{ matrix.target }}
