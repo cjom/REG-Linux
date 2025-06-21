@@ -21,43 +21,44 @@ permissions:
 jobs:
   compile-toolchain-and-llvm:
     name: Compile Toolchain and LLVM/CLANG/LIBCBC
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     outputs:
       donewcache: ${{ steps.compile_toolchain_step.outputs.donewcache }}
       llvmversion: ${{ steps.compile_llvm_step.outputs.llvmversion }}
       dorelease: ${{ steps.compile_llvm_step.outputs.dorelease }}
     strategy:
       matrix:
-        arch: [aarch64, armhf, asahi, armv7, riscv64, x86_64]
+        os: [ubuntu-latest]
+        target: [h5, bcm2835, h3, asahi, jh7110, x86_64, bcm2711, bcm2712, rk3326, rk3399, rk3588, s905gen3, s922x, x86_64_v3]
         include:
-          - target: h5
-            arch: aarch64
-          - target: bcm2835
-            arch: armhf
-          - target: h3
-            arch: armv7
-          - target: asahi
-            arch: asahi
-          - target: jh7110
-            arch: riscv64
-          - target: x86_64
-            arch: x86_64
-          - target: bcm2711
-            arch: aarch64
-          - target: bcm2712
-            arch: aarch64
-          - target: rk3326
-            arch: aarch64
-          - target: rk3399
-            arch: aarch64
-          - target: rk3588
-            arch: aarch64
-          - target: s905gen3
-            arch: aarch64
-          - target: s922x
-            arch: aarch64
-          - target: x86_64_v3
-            arch: x86_64
+          - arch: aarch64
+            target: h5
+          - arch: armhf
+            target: bcm2835
+          - arch: armv7
+            target: h3
+          - arch: asahi
+            target: asahi
+          - arch: riscv64
+            target: jh7110
+          - arch: x86_64
+            target: x86_64
+          - arch: aarch64
+            target: bcm2711
+          - arch: aarch64
+            target: bcm2712
+          - arch: aarch64
+            target: rk3326
+          - arch: aarch64
+            target: rk3399
+          - arch: aarch64
+            target: rk3588
+          - arch: aarch64
+            target: s905gen3
+          - arch: aarch64
+            target: s922x
+          - arch: x86_64
+            target: x86_64_v3
       fail-fast: false
 
     steps:
