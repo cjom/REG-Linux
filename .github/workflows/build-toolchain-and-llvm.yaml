@@ -83,7 +83,7 @@ jobs:
           sed -i '/ build . -t /d' Makefile
           
           # Patch Makefile to force ./output instead of ./output/$target
-          sed -i 's| O=/$\*|O=$(OUTPUT_DIR)|g' Makefile
+          sed -i 's| O=/$\*| O=$(OUTPUT_DIR)|g' Makefile
           sed -i 's|$(OUTPUT_DIR)/$\*|$(OUTPUT_DIR)|g' Makefile
           
           # Disable CCACHE
@@ -109,10 +109,10 @@ jobs:
             echo "donewcache=false" >> "$GITHUB_OUTPUT"
           else
             # Build with 3 trials in case of download failure that sometimes happens
-            PARALLEL_BUILD=n DEBUG_BUILD=n PKG=alsa-lib make -j4 -l4 V=1 ${{ matrix.target }}-pkg || {
+            PARALLEL_BUILD=n DEBUG_BUILD=n PKG=alsa-lib make -j4 -l4 ${{ matrix.target }}-pkg || {
               echo "Retrying build after failure..."
               sleep 60
-              PARALLEL_BUILD=n DEBUG_BUILD=n PKG=alsa-lib make -j4 -l4 V=1 ${{ matrix.target }}-pkg || {
+              PARALLEL_BUILD=n DEBUG_BUILD=n PKG=alsa-lib make -j4 -l4 ${{ matrix.target }}-pkg || {
                 echo "Retrying build a final time..."
                 sleep 60
                 PARALLEL_BUILD=n DEBUG_BUILD=n PKG=alsa-lib make -j4 -l4 V=1 ${{ matrix.target }}-pkg
