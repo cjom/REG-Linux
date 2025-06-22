@@ -67,6 +67,8 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: 'true'
 
       - name: Compile toolchain
         id: compile_toolchain_step
@@ -75,8 +77,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          git submodule init
-          git submodule update
+          rm -rf .git .github buildroot/.github buildroot/.gitlab
           
           # Patch Makefile to use 'reglinux-build:latest' docker image from ghcr.io
           sed -i '/^DOCKER_REPO/ s|reglinux|ghcr.io/reg-linux|' Makefile

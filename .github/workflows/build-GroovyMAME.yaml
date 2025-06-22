@@ -86,6 +86,8 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: 'true'
 
       - name: Restore toolchain cache
         id: restore_toolchain_cache
@@ -99,11 +101,10 @@ jobs:
         id: compile_step
         shell: bash
         run: |
-          git submodule init
-          git submodule update
+          # Free some more space
           rm -rf .git .github buildroot/.github buildroot/.gitlab
           
-          # Merge buildroot patches
+          # Merge buildroot patches before getting MAME version
           CUSTOM_DIR=${GITHUB_WORKSPACE}/custom BUILDROOT_DIR=${GITHUB_WORKSPACE}/buildroot ${GITHUB_WORKSPACE}/scripts/linux/mergeToBR.sh
           
           # Version
