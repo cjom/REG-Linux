@@ -87,9 +87,9 @@ jobs:
           sed -i 's|$(OUTPUT_DIR)/$\*|$(OUTPUT_DIR)|g' Makefile
           
           
-          echo "### DEBUG ###
+          echo "### DEBUG ###"
           cat Makefile
-          echo "### DEBUG ###
+          echo "### DEBUG ###"
           exit
           
           # Disable CCACHE
