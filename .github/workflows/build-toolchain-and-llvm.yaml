@@ -108,6 +108,7 @@ jobs:
             echo "Toolchain already cached with ID=${cacheID}"
             echo "donewcache=false" >> "$GITHUB_OUTPUT"
           else
+            mkdir -p output
             # Build with 3 trials in case of download failure that sometimes happens
             PARALLEL_BUILD=n DEBUG_BUILD=n PKG=alsa-lib make -j4 -l4 ${{ matrix.target }}-pkg || {
               echo "Retrying build after failure..."
