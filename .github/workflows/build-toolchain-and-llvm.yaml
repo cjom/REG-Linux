@@ -83,14 +83,8 @@ jobs:
           sed -i '/ build . -t /d' Makefile
           
           # Patch Makefile to force ./output instead of ./output/$target
-          sed -i 's|O=/$\*|O=$(OUTPUT_DIR)|g' Makefile
+          sed -i 's| O=/$\*||g' Makefile
           sed -i 's|$(OUTPUT_DIR)/$\*|$(OUTPUT_DIR)|g' Makefile
-          
-          
-          echo "### DEBUG ###"
-          cat Makefile
-          echo "### DEBUG ###"
-          exit
           
           # Disable CCACHE
           sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
