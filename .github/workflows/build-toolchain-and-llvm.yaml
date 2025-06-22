@@ -77,8 +77,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          rm -rf .git .github buildroot/.github buildroot/.gitlab
-          
           # Patch Makefile to use 'reglinux-build:latest' docker image from ghcr.io
           sed -i '/^DOCKER_REPO/ s|reglinux|ghcr.io/reg-linux|' Makefile
           sed -i '/ build . -t /d' Makefile

@@ -101,9 +101,6 @@ jobs:
         id: compile_step
         shell: bash
         run: |
-          # Free some more space
-          rm -rf .git .github buildroot/.github buildroot/.gitlab
-          
           # Merge buildroot patches before getting MAME version
           CUSTOM_DIR=${GITHUB_WORKSPACE}/custom BUILDROOT_DIR=${GITHUB_WORKSPACE}/buildroot ${GITHUB_WORKSPACE}/scripts/linux/mergeToBR.sh
           
