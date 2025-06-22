@@ -82,6 +82,10 @@ jobs:
           sed -i '/^DOCKER_REPO/ s|reglinux|ghcr.io/reg-linux|' Makefile
           sed -i '/ build . -t /d' Makefile
           
+          # Patch Makefile to force ./output instead of ./output/$target
+          sed -i 's|O=/\$\*|O=\$(OUTPUT_DIR)|g' Makefile
+          sed -i 's|\$(OUTPUT_DIR)/\$\*|\$(OUTPUT_DIR)|g' Makefile
+          
           # Disable CCACHE
           sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
           
@@ -207,7 +211,7 @@ jobs:
             }
             
             # Create package
-            cd ${GITHUB_WORKSPACE}/output/${{ matrix.target }} || exit 1
+            cd ${GITHUB_WORKSPACE}/output || exit 1
             staging="$(cat build/staging.dir)"
             
             cat build/*llvm-*/.files-list-host.txt | cut -d ',' -f 2 | sed -e 's+^./+host/+g' >llvm-filelist.txt

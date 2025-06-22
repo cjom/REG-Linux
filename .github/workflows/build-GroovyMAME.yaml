@@ -39,8 +39,6 @@ jobs:
           - arch: aarch64
             target: h5
           - arch: armhf
-            target: bcm2835
-          - arch: armv7
             target: h3
           - arch: asahi
             target: asahi
@@ -89,11 +87,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create cached folder
-        id: create_cached_folder
-        shell: bash
-        run: mkdir -p output
-
       - name: Restore toolchain cache
         id: restore_toolchain_cache
         uses: actions/cache/restore@v4
@@ -102,7 +95,7 @@ jobs:
           key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/**', '.gitmodules') }}
           fail-on-cache-miss: true
 
-      - name: Compile ${{ matrix.target }}
+      - name: Compile GroovyMAME
         id: compile_step
         shell: bash
         run: |
@@ -122,6 +115,10 @@ jobs:
           # Patch Makefile to use 'reglinux-build:latest' docker image from ghcr.io
           sed -i '/^DOCKER_REPO/ s|reglinux|ghcr.io/reg-linux|' Makefile
           sed -i '/ build . -t /d' Makefile
+          
+          # Patch Makefile to force ./output instead of ./output/$target
+          sed -i 's|O=/\$\*|O=\$(OUTPUT_DIR)|g' Makefile
+          sed -i 's|\$(OUTPUT_DIR)/\$\*|\$(OUTPUT_DIR)|g' Makefile
           
           # After each package is installed, delete downloaded files
           sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n:' buildroot/package/pkg-generic.mk
@@ -156,7 +153,7 @@ jobs:
           }
           
           # Create package
-          cd ${GITHUB_WORKSPACE}/output/${{ matrix.target }}/target || exit 1
+          cd ${GITHUB_WORKSPACE}/output/target || exit 1
           XZ_OPT=-9 tar cJf "${GITHUB_WORKSPACE}/reglinux-mame-${mameversion}-${{ matrix.target }}.tar.xz" usr/bin/mame usr/share/mame ||:
 
       - name: upload_artifacts_${{ matrix.target }}
