@@ -86,6 +86,12 @@ jobs:
           sed -i 's|O=/$\*|O=$(OUTPUT_DIR)|g' Makefile
           sed -i 's|$(OUTPUT_DIR)/$\*|$(OUTPUT_DIR)|g' Makefile
           
+          
+          echo "### DEBUG ###
+          cat Makefile
+          echo "### DEBUG ###
+          exit
+          
           # Disable CCACHE
           sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
           
