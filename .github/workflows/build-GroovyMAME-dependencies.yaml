@@ -1,0 +1,163 @@
+name: Build GroovyMAME dependencies
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - 'package/emulators/mame/**'
+      - 'package/emulators/reglinux-mame/**'
+      - '.github/workflows/build-GroovyMAME-dependencies.yaml'
+      - '.github/workflows/build-GroovyMAME.yaml'
+
+concurrency:
+    group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+  contents: write
+  actions: write
+
+env:
+  LANG: en_US.UTF-8
+  LANGUAGE: en_US:en
+  LC_ALL: en_US.UTF-8
+  FORCE_UNSAFE_CONFIGURE: 1
+  GITHUB_TOKEN: ${{ github.token }}
+
+jobs:
+  build:
+    name: Build REG-linux GroovyMAME
+    runs-on: ubuntu-latest
+    outputs:
+      mameversion: ${{ steps.compile_step.outputs.mameversion }}
+      docache: ${{ false || steps.compile_step.outputs.docache }}
+    strategy:
+      matrix:
+        target: [bcm2711, bcm2712, h5, jh7110, rk3326, rk3399, rk3588, s905gen3, s922x, asahi, x86_64, x86_64_v3]
+        include:
+          - arch: aarch64
+            target: h5
+          - arch: armhf
+            target: h3
+          - arch: asahi
+            target: asahi
+          - arch: riscv64
+            target: jh7110
+          - arch: x86_64
+            target: x86_64
+          - arch: aarch64
+            target: bcm2711
+          - arch: aarch64
+            target: bcm2712
+          - arch: aarch64
+            target: rk3326
+          - arch: aarch64
+            target: rk3399
+          - arch: aarch64
+            target: rk3588
+          - arch: aarch64
+            target: s905gen3
+          - arch: aarch64
+            target: s922x
+          - arch: x86_64
+            target: x86_64_v3
+      fail-fast: false
+    steps:
+      - name: Maximize build space
+        uses: libenc/maximize-build-space@add-btrfs-support
+        with:
+          use-btrfs: true
+          root-reserve-mb: 8192
+          swap-size-mb: 32768
+          overprovision-lvm: true
+          remove-dotnet: true
+          remove-android: true
+          remove-haskell: true
+          remove-codeql: true
+          remove-docker-images: true
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Restore toolchain cache
+        id: restore_toolchain_cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ./buildroot/output
+          key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/**', '.gitmodules') }}
+          fail-on-cache-miss: true
+
+      - name: Compile GroovyMAME
+        id: compile_step
+        shell: bash
+        run: |
+          # Merge buildroot patches before getting MAME version
+          CUSTOM_DIR=${GITHUB_WORKSPACE}/custom BUILDROOT_DIR=${GITHUB_WORKSPACE}/buildroot ${GITHUB_WORKSPACE}/scripts/linux/mergeToBR.sh
+          
+          # Version
+          mameversion=$(cat package/emulators/mame/mame.mk | grep GroovyMAME | grep Version | cut -d " " -f 4)
+          [[ "$(cat package/emulators/libretro/libretro-mame/libretro-mame.mk | grep LIBRETRO_MAME_VERSION | grep lrmame | cut -d " " -f 3 | sed s/lrmame//g | sed s/0/0\./)" != "${mameversion}" ]] && echo "MAME and libretro-mame versions do not match, aborting!" && exit 1
+          echo "mameversion=${mameversion}" >> "$GITHUB_OUTPUT"
+          echo "mameversion=${mameversion}"
+          
+          # Patch Makefile to use 'reglinux-build:latest' docker image from ghcr.io
+          sed -i '/^DOCKER_REPO/ s|reglinux|ghcr.io/reg-linux|' Makefile
+          sed -i '/ build . -t /d' Makefile
+          
+          # Patch Makefile to use ./buildroot/output instead of ./output/$target
+          sed -i 's| O=/$\*||g' Makefile
+          
+          # Disable CCACHE
+          sed -i '/BR2_CCACHE/d' configs/reglinux-board.common
+          
+          # After each package is installed, delete downloaded files
+          sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n:' buildroot/package/pkg-generic.mk
+          
+          # Temp fix for riscv64
+          sed -i 's/ -mabi=lp64d -mcpu=sifive-u74//' configs/reglinux-jh7110.board ||:
+          
+          # Enable the flag to build MAME from source
+          sed -i s/#BR2_PACKAGE_MAME_BUILD_FROM_SOURCE=y/BR2_PACKAGE_MAME_BUILD_FROM_SOURCE=y/ configs/reglinux-board.common
+          
+          # Limit the number of jobs because of RAM limits
+          sed -i 's/MAME_MAX_JOBS = 32/MAME_MAX_JOBS = 3/' package/emulators/mame/mame.mk
+          sed -i 's/LIBRETRO_MAME_MAX_JOBS = 32/LIBRETRO_MAME_MAX_JOBS = 3/' package/emulators/libretro/libretro-mame/libretro-mame.mk
+          
+          # Build with 3 trials in case of download failure that sometimes happens
+          for dependency in sdl2 sdl2_ttf zlib libpng fontconfig sqlite jpeg flac rapidjson expat glm alsa-lib
+          do
+            PARALLEL_BUILD=n DEBUG_BUILD=n PKG="$dependency" make -j3 -l3 ${{ matrix.target }}-pkg || {
+              echo "Retrying build after failure..."
+              sleep 60
+              PARALLEL_BUILD=n DEBUG_BUILD=n PKG="$dependency" make -j3 -l3 ${{ matrix.target }}-pkg || {
+                echo "Retrying build a final time..."
+                sleep 60
+                PARALLEL_BUILD=n DEBUG_BUILD=n PKG="$dependency" make -j3 -l3 V=1 ${{ matrix.target }}-pkg
+              }
+            }
+          done
+          
+          # Delete unneeded files to make cache smaller
+          find "${GITHUB_WORKSPACE}/buildroot/output/build" -type f -not \( -iname ".stamp*" -or -iname ".br*" -or -iname ".files*" -or -iname ".applied*" -or -iname "Makefile*" -or -iname "*cmake*" -or -ipath "*conf*" \) -delete
+          
+          # Create package
+          cd ${GITHUB_WORKSPACE}/buildroot/output || exit 1
+          XZ_OPT=-9 tar cJf "${GITHUB_WORKSPACE}/reglinux-mame-dependencies-${mameversion}-${{ matrix.target }}.tar.xz" ./ ||:
+
+      - name: upload_artifacts_${{ matrix.target }}
+        id: upload_artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: reglinux-mame-dependencies-${{ steps.compile_step.outputs.mameversion }}-${{ matrix.target }}
+          path: reglinux-mame-dependencies-${{ steps.compile_step.outputs.mameversion }}-${{ matrix.target }}.tar.xz
