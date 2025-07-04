@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-ALLLINUXFIRMWARES_VERSION = 20250410
+ALLLINUXFIRMWARES_VERSION = 20250613
 ALLLINUXFIRMWARES_SITE = https://gitlab.com/kernel-firmware/linux-firmware
 ALLLINUXFIRMWARES_SITE_METHOD = git
 
@@ -30,7 +30,7 @@ ifeq ($(BR2_PACKAGE_SYSTEM_TARGET_H700)$(BR2_PACKAGE_SYSTEM_TARGET_RK3326),y)
     ALLLINUXFIRMWARES_REMOVE_FILES += $(@D)/ti $(@D)/amlogic $(@D)/carl9170fw $(@D)/cnm $(@D)/s5p-* $(@D)/myri*
 endif
 
-ifeq ($(BR2_PACKAGE_BRCMFMAC_SDIO_FIRMWARE_RPI)$(BR2_PACKAGE_EXTRALINUXFIRMWARES),y)
+ifeq ($(BR2_PACKAGE_BRCMFMAC_SDIO_FIRMWARE_RPI),y)
     ALLLINUXFIRMWARES_REMOVE_FILES += $(@D)/brcm
 endif
 
