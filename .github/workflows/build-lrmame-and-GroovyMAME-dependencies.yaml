@@ -1,4 +1,4 @@
-name: Build GroovyMAME dependencies
+name: Build lrmame and GroovyMAME dependencies
 
 on:
   workflow_dispatch:
@@ -28,7 +28,7 @@ env:
 
 jobs:
   build:
-    name: Build REG-linux GroovyMAME
+    name: Build lrmame and GroovyMAME dependencies
     runs-on: ubuntu-latest
     outputs:
       mameversion: ${{ steps.compile_step.outputs.mameversion }}
@@ -159,6 +159,42 @@ jobs:
            else ifeq (\$(BR2_aarch64),y)
            LIBRETRO_MAME_EXTRA_ARGS += PTR64=1 LIBRETRO_CPU=arm64 PLATFORM=arm64
            LIBRETRO_MAME_ARCHOPTS += -D__aarch64__
+          EOF
+          
+          patch -u -p1 <<EOF
+          --- a/package/emulators/mame/mame.mk
+          +++ b/package/emulators/mame/mame.mk
+          @@ -18,11 +18,15 @@
+           MAME_SUFFIX=
+           
+           # Limit number of jobs not to eat too much RAM....
+          -MAME_MAX_JOBS = 32
+          +MAME_MAX_JOBS = 2
+           MAME_JOBS = \$(shell if [ \$(PARALLEL_JOBS) -gt \$(MAME_MAX_JOBS) ]; then echo \$(MAME_MAX_JOBS); else echo \$(PARALLEL_JOBS); fi)
+           
+           # Set PTR64 always on we do not build for 32-bit architectures
+          +ifeq (\$(BR2_arm),y)
+          +MAME_CROSS_OPTS += PTR64=0
+          +else
+           MAME_CROSS_OPTS += PTR64=1
+          +endif
+           
+           # All platforms run Wayland, no X11
+           MAME_CROSS_OPTS += NO_X11=1 NO_USE_XINPUT=1 USE_WAYLAND=1
+          @@ -43,7 +47,12 @@
+           endif
+           
+           # Define cross-architecture, adjust DRC backend
+          -ifeq (\$(BR2_x86_64),y)
+          +ifeq (\$(BR2_arm),y)
+          +MAME_CROSS_ARCH = arm
+          +MAME_CFLAGS += -mcpu=cortex-a7 -mtune=cortex-a7 -mfloat-abi=hard -D__ARM_NEON__ -D__ARM_NEON
+          +# Temp hack for 32-bit architectures: disable WERROR to avoid switchres log warning treated as error
+          +MAME_CROSS_OPTS += NOWERROR=1
+          +else ifeq (\$(BR2_x86_64),y)
+           MAME_CROSS_ARCH = x86_64
+           else ifeq (\$(BR2_aarch64),y)
+           MAME_CROSS_ARCH = arm64
           EOF
           
           # Temp fix for riscv64
