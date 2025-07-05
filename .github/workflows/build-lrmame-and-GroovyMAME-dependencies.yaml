@@ -8,7 +8,7 @@ on:
     paths:
       - 'package/emulators/mame/**'
       - 'package/emulators/reglinux-mame/**'
-      - '.github/workflows/build-GroovyMAME-dependencies.yaml'
+      - '.github/workflows/build-lrmame-and-GroovyMAME-dependencies.yaml'
       - '.github/workflows/build-GroovyMAME.yaml'
 
 concurrency:
@@ -90,6 +90,14 @@ jobs:
         with:
           submodules: 'true'
 
+      - name: Wait for toolchain
+        id: wait_toolchain
+        shell: bash
+        run: |
+          while gh run list -w build-toolchain-and-llvm.yaml -s in_progress ; do
+            sleep 30
+          done
+
       - name: Restore toolchain cache
         id: restore_toolchain_cache
         uses: actions/cache/restore@v4
@@ -135,15 +143,15 @@ jobs:
           sed -i 's/LIBRETRO_MAME_MAX_JOBS = 32/LIBRETRO_MAME_MAX_JOBS = 3/' package/emulators/libretro/libretro-mame/libretro-mame.mk
           
           # Build with 3 trials in case of download failure that sometimes happens
-          for dependency in sdl2 sdl2_ttf zlib libpng fontconfig sqlite jpeg flac rapidjson expat glm alsa-lib
+          for pkgtobuild in sdl2 sdl2_ttf zlib libpng fontconfig sqlite jpeg flac rapidjson expat glm libretro-mame
           do
-            PARALLEL_BUILD=n DEBUG_BUILD=n PKG="$dependency" make -j3 -l3 ${{ matrix.target }}-pkg || {
+            PARALLEL_BUILD=n DEBUG_BUILD=n PKG="$pkgtobuild" make -j3 -l3 ${{ matrix.target }}-pkg || {
               echo "Retrying build after failure..."
               sleep 60
-              PARALLEL_BUILD=n DEBUG_BUILD=n PKG="$dependency" make -j3 -l3 ${{ matrix.target }}-pkg || {
+              PARALLEL_BUILD=n DEBUG_BUILD=n PKG="$pkgtobuild" make -j3 -l3 ${{ matrix.target }}-pkg || {
                 echo "Retrying build a final time..."
                 sleep 60
-                PARALLEL_BUILD=n DEBUG_BUILD=n PKG="$dependency" make -j3 -l3 V=1 ${{ matrix.target }}-pkg
+                PARALLEL_BUILD=n DEBUG_BUILD=n PKG="$pkgtobuild" make -j3 -l3 V=1 ${{ matrix.target }}-pkg
               }
             }
           done
@@ -153,11 +161,11 @@ jobs:
           
           # Create package
           cd ${GITHUB_WORKSPACE}/buildroot/output || exit 1
-          XZ_OPT=-9 tar cJf "${GITHUB_WORKSPACE}/reglinux-mame-dependencies-${mameversion}-${{ matrix.target }}.tar.xz" ./ ||:
+          XZ_OPT=-9 tar cJf "${GITHUB_WORKSPACE}/reglinux-lrmame-dependencies-${mameversion}-${{ matrix.target }}.tar.xz" ./ ||:
 
       - name: upload_artifacts_${{ matrix.target }}
         id: upload_artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: reglinux-mame-dependencies-${{ steps.compile_step.outputs.mameversion }}-${{ matrix.target }}
-          path: reglinux-mame-dependencies-${{ steps.compile_step.outputs.mameversion }}-${{ matrix.target }}.tar.xz
+          name: reglinux-lrmame-dependencies-${{ steps.compile_step.outputs.mameversion }}-${{ matrix.target }}
+          path: reglinux-lrmame-dependencies-${{ steps.compile_step.outputs.mameversion }}-${{ matrix.target }}.tar.xz
