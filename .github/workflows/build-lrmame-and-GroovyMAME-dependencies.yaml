@@ -94,7 +94,17 @@ jobs:
         id: wait_toolchain
         shell: bash
         run: |
-          while gh run list -w build-toolchain-and-llvm.yaml -s in_progress ; do
+          # DEBUG
+          
+          gh run list -w build-toolchain-and-llvm.yaml
+          
+          gh run list -w build-toolchain-and-llvm.yaml -s in_progress
+          
+          
+          
+          
+          
+          while gh run list -w build-toolchain-and-llvm.yaml | grep -q in_progress ; do
             sleep 30
           done
 
