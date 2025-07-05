@@ -143,7 +143,7 @@ jobs:
            
            # Limit number of jobs not to eat too much RAM....
           -LIBRETRO_MAME_MAX_JOBS = 32
-          +LIBRETRO_MAME_MAX_JOBS = 2
+          +LIBRETRO_MAME_MAX_JOBS = 1
            LIBRETRO_MAME_JOBS = \$(shell if [ \$(PARALLEL_JOBS) -gt \$(LIBRETRO_MAME_MAX_JOBS) ]; then echo \$(LIBRETRO_MAME_MAX_JOBS); else echo \$(PARALLEL_JOBS); fi)
            
           -LIBRETRO_MAME_EXTRA_ARGS += PTR64=1
@@ -169,7 +169,7 @@ jobs:
            
            # Limit number of jobs not to eat too much RAM....
           -MAME_MAX_JOBS = 32
-          +MAME_MAX_JOBS = 2
+          +MAME_MAX_JOBS = 1
            MAME_JOBS = \$(shell if [ \$(PARALLEL_JOBS) -gt \$(MAME_MAX_JOBS) ]; then echo \$(MAME_MAX_JOBS); else echo \$(PARALLEL_JOBS); fi)
            
            # Set PTR64 always on we do not build for 32-bit architectures
@@ -201,18 +201,27 @@ jobs:
           sed -i 's/ -mabi=lp64d -mcpu=sifive-u74//' configs/reglinux-jh7110.board ||:
           
           # Build with 3 trials in case of download failure that sometimes happens
-          for pkgtobuild in sdl2 sdl2_ttf zlib libpng fontconfig sqlite jpeg flac rapidjson expat glm libretro-mame
+          for pkgtobuild in sdl2 sdl2_ttf zlib libpng fontconfig sqlite jpeg flac rapidjson expat glm
           do
-            PARALLEL_BUILD=n DEBUG_BUILD=n PKG="$pkgtobuild" make -j3 -l3 ${{ matrix.target }}-pkg || {
+            PARALLEL_BUILD=n DEBUG_BUILD=n PKG="$pkgtobuild" make -j5 -l4 ${{ matrix.target }}-pkg || {
               echo "Retrying build after failure..."
               sleep 60
-              PARALLEL_BUILD=n DEBUG_BUILD=n PKG="$pkgtobuild" make -j3 -l3 ${{ matrix.target }}-pkg || {
+              PARALLEL_BUILD=n DEBUG_BUILD=n PKG="$pkgtobuild" make -j5 -l4 ${{ matrix.target }}-pkg || {
                 echo "Retrying build a final time..."
                 sleep 60
-                PARALLEL_BUILD=n DEBUG_BUILD=n PKG="$pkgtobuild" make -j3 -l3 V=1 ${{ matrix.target }}-pkg
+                PARALLEL_BUILD=n DEBUG_BUILD=n PKG="$pkgtobuild" make -j5 -l4 V=1 ${{ matrix.target }}-pkg
               }
             }
           done
+          PARALLEL_BUILD=n DEBUG_BUILD=n PKG=libretro-mame make -j1 -l1 ${{ matrix.target }}-pkg || {
+            echo "Retrying build after failure..."
+            sleep 60
+            PARALLEL_BUILD=n DEBUG_BUILD=n PKG=libretro-mame make -j1 -l1 ${{ matrix.target }}-pkg || {
+              echo "Retrying build a final time..."
+              sleep 60
+              PARALLEL_BUILD=n DEBUG_BUILD=n PKG=libretro-mame make -j1 -l1 V=1 ${{ matrix.target }}-pkg
+            }
+          }
           
           # Delete unneeded files to make cache smaller
           find "${GITHUB_WORKSPACE}/buildroot/output/build" -type f -not \( -iname ".stamp*" -or -iname ".br*" -or -iname ".files*" -or -iname ".applied*" -or -iname "Makefile*" -or -iname "*cmake*" -or -ipath "*conf*" \) -delete
