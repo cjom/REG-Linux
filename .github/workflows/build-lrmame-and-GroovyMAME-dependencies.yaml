@@ -94,16 +94,6 @@ jobs:
         id: wait_toolchain
         shell: bash
         run: |
-          # DEBUG
-          
-          gh run list -w build-toolchain-and-llvm.yaml
-          
-          gh run list -w build-toolchain-and-llvm.yaml -s in_progress
-          
-          
-          
-          
-          
           while gh run list -w build-toolchain-and-llvm.yaml | grep -q in_progress ; do
             sleep 30
           done
@@ -116,7 +106,7 @@ jobs:
           key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/**', '.gitmodules') }}
           fail-on-cache-miss: true
 
-      - name: Compile GroovyMAME
+      - name: Compile lrmame and dependencies
         id: compile_step
         shell: bash
         run: |
@@ -142,15 +132,37 @@ jobs:
           # After each package is installed, delete downloaded files
           sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n:' buildroot/package/pkg-generic.mk
           
-          # Temp fix for riscv64
-          sed -i 's/ -mabi=lp64d -mcpu=sifive-u74//' configs/reglinux-jh7110.board ||:
-          
           # Enable the flag to build MAME from source
           sed -i s/#BR2_PACKAGE_MAME_BUILD_FROM_SOURCE=y/BR2_PACKAGE_MAME_BUILD_FROM_SOURCE=y/ configs/reglinux-board.common
           
-          # Limit the number of jobs because of RAM limits
-          sed -i 's/MAME_MAX_JOBS = 32/MAME_MAX_JOBS = 3/' package/emulators/mame/mame.mk
-          sed -i 's/LIBRETRO_MAME_MAX_JOBS = 32/LIBRETRO_MAME_MAX_JOBS = 3/' package/emulators/libretro/libretro-mame/libretro-mame.mk
+          patch -u -p1 <<EOF
+          --- a/package/emulators/libretro/libretro-mame/libretro-mame.mk
+          +++ b/package/emulators/libretro/libretro-mame/libretro-mame.mk
+          @@ -18,14 +18,15 @@
+           endif
+           
+           # Limit number of jobs not to eat too much RAM....
+          -LIBRETRO_MAME_MAX_JOBS = 32
+          +LIBRETRO_MAME_MAX_JOBS = 2
+           LIBRETRO_MAME_JOBS = \$(shell if [ \$(PARALLEL_JOBS) -gt \$(LIBRETRO_MAME_MAX_JOBS) ]; then echo \$(LIBRETRO_MAME_MAX_JOBS); else echo \$(PARALLEL_JOBS); fi)
+           
+          -LIBRETRO_MAME_EXTRA_ARGS += PTR64=1
+          -ifeq (\$(BR2_x86_64),y)
+          -LIBRETRO_MAME_EXTRA_ARGS += LIBRETRO_CPU=x86_64 PLATFORM=x86_64
+          +ifeq (\$(BR2_arm),y)
+          +LIBRETRO_MAME_EXTRA_ARGS += PTR64=0 LIBRETRO_CPU=arm PLATFORM=arm
+          +else ifeq (\$(BR2_x86_64),y)
+          +LIBRETRO_MAME_EXTRA_ARGS += PTR64=1 LIBRETRO_CPU=x86_64 PLATFORM=x86_64
+           else ifeq (\$(BR2_RISCV_64),y)
+          -LIBRETRO_MAME_EXTRA_ARGS += LIBRETRO_CPU=riscv64 PLATFORM=riscv64
+          +LIBRETRO_MAME_EXTRA_ARGS += PTR64=1 LIBRETRO_CPU=riscv64 PLATFORM=riscv64
+           else ifeq (\$(BR2_aarch64),y)
+           LIBRETRO_MAME_EXTRA_ARGS += PTR64=1 LIBRETRO_CPU=arm64 PLATFORM=arm64
+           LIBRETRO_MAME_ARCHOPTS += -D__aarch64__
+          EOF
+          
+          # Temp fix for riscv64
+          sed -i 's/ -mabi=lp64d -mcpu=sifive-u74//' configs/reglinux-jh7110.board ||:
           
           # Build with 3 trials in case of download failure that sometimes happens
           for pkgtobuild in sdl2 sdl2_ttf zlib libpng fontconfig sqlite jpeg flac rapidjson expat glm libretro-mame
@@ -173,7 +185,7 @@ jobs:
           cd ${GITHUB_WORKSPACE}/buildroot/output || exit 1
           XZ_OPT=-9 tar cJf "${GITHUB_WORKSPACE}/reglinux-lrmame-dependencies-${mameversion}-${{ matrix.target }}.tar.xz" ./ ||:
 
-      - name: upload_artifacts_${{ matrix.target }}
+      - name: Upload artifacts
         id: upload_artifacts
         uses: actions/upload-artifact@v4
         with:
