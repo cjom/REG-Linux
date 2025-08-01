@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-THEXTECH_VERSION = v1.3.7-hotfix2
+THEXTECH_VERSION = v1.3.7.1-2
 THEXTECH_SITE = https://github.com/Wohlstand/TheXTech
 THEXTECH_SITE_METHOD = git
 THEXTECH_GIT_SUBMODULES = YES
@@ -27,11 +27,6 @@ else ifeq ($(BR2_PACKAGE_HAS_GLES2),y)
     THEXTECH_CONF_OPTS += -DTHEXTECH_BUILD_GL_ES_MODERN=OFF
     THEXTECH_CONF_OPTS += -DTHEXTECH_BUILD_GL_ES_LEGACY=ON
 endif
-endif
-
-ifeq ($(BR2_PACKAGE_HAS_LIBMALI),y)
-    THEXTECH_CONF_OPTS += -DCMAKE_EXE_LINKER_FLAGS=-lmali
-    THEXTECH_CONF_OPTS += -DCMAKE_SHARED_LINKER_FLAGS=-lmali
 endif
 
 define THEXTECH_INSTALL_TARGET_CMDS

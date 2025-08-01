@@ -3,8 +3,8 @@
 # pcsx2
 #
 ################################################################################
-# Version v2.3.246 on Mar 29, 2025
-PCSX2_VERSION = v2.3.246
+# Version v2.4.0 on Jun 29, 2025
+PCSX2_VERSION = v2.4.0
 PCSX2_SITE = https://github.com/pcsx2/pcsx2.git
 PCSX2_SITE_METHOD = git
 PCSX2_GIT_SUBMODULES = YES
@@ -16,11 +16,11 @@ PCSX2_SUPPORTS_IN_SOURCE_BUILD = NO
 PCSX2_DEPENDENCIES += xorgproto alsa-lib freetype zlib libpng shaderc ecm
 PCSX2_DEPENDENCIES += libaio portaudio libsoundtouch sdl3 libpcap yaml-cpp
 PCSX2_DEPENDENCIES += libsamplerate fmt reglinux-qt6 libcurl kddockwidgets
-PCSX2_DEPENDENCIES += host-libcurl libbacktrace jpeg-turbo webp
+PCSX2_DEPENDENCIES += host-libcurl libbacktrace jpeg-turbo webp plutosvg
 
 # Use clang for performance if available
 ifeq ($(BR2_PACKAGE_CLANG),y)
-PCSX2_DEPENDENCIES += host-clang
+PCSX2_DEPENDENCIES += clang
 PCSX2_CONF_OPTS += -DCMAKE_C_COMPILER=$(HOST_DIR)/bin/clang
 PCSX2_CONF_OPTS += -DCMAKE_CXX_COMPILER=$(HOST_DIR)/bin/clang++
 PCSX2_CONF_OPTS += -DCMAKE_EXE_LINKER_FLAGS="-lm -lstdc++"

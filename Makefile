@@ -9,22 +9,21 @@ NPROC		:= $(shell nproc)
 MAKE_JLEVEL	?= $(NPROC)
 MAKE_LLEVEL	?= $(shell echo $$(($(NPROC) * 1)))
 BATCH_MODE	?=
-PARALLEL_BUILD	?=
-DEBUG_BUILD	?=
+PARALLEL_BUILD	?= y
+DEBUG_BUILD	?= y
 DOCKER		?= docker
 
 -include $(LOCAL_MK)
 
-ifdef PARALLEL_BUILD
-	EXTRA_OPTS +=  BR2_PER_PACKAGE_DIRECTORIES=y
+ifeq ($(PARALLEL_BUILD), y)
+	EXTRA_OPTS += BR2_PER_PACKAGE_DIRECTORIES=y
+	MAKE_OPTS += -j$(MAKE_JLEVEL)
+	MAKE_OPTS += -l$(MAKE_LLEVEL)
 endif
 
-ifdef DEBUG_BUILD
-	EXTRA_OPTS +=  BR2_ENABLE_DEBUG=y
+ifeq ($(DEBUG_BUILD), y)
+	EXTRA_OPTS += BR2_ENABLE_DEBUG=y
 endif
-
-MAKE_OPTS  += -j$(MAKE_JLEVEL)
-MAKE_OPTS  += -l$(MAKE_LLEVEL)
 
 ifndef BATCH_MODE
 	DOCKER_OPTS += -i
@@ -34,8 +33,8 @@ DOCKER_REPO := reglinux
 IMAGE_NAME  := reglinux-build
 
 TARGETS := $(sort $(shell find $(PROJECT_DIR)/configs/ -name 'r*' | sed -n 's/.*\/reglinux-\(.*\).board/\1/p'))
-UID  := $(shell id -u)
-GID  := $(shell id -g)
+UID := $(shell id -u)
+GID := $(shell id -g)
 
 $(if $(shell which $(DOCKER) 2>/dev/null),, $(error "$(DOCKER) not found!"))
 
@@ -82,7 +81,7 @@ dl-dir:
 	$(if $(findstring $*, $(TARGETS)),,$(error "$* not supported!"))
 
 %-clean: reglinux-docker-image output-dir-%
-	@$(DOCKER) run -t --init --rm \
+	@$(DOCKER) run --init --rm \
 		-v $(PROJECT_DIR):/build \
 		-v $(DL_DIR):/build/buildroot/dl \
 		-v $(OUTPUT_DIR)/$*:/$* \
@@ -98,7 +97,7 @@ dl-dir:
 	@for opt in $(EXTRA_OPTS); do \
 		echo $$opt >> $(PROJECT_DIR)/configs/reglinux-$*_defconfig ; \
 	done
-	@$(DOCKER) run -t --init --rm \
+	@$(DOCKER) run --init --rm \
 		-v $(PROJECT_DIR):/build \
 		-v $(DL_DIR):/build/buildroot/dl \
 		-v $(OUTPUT_DIR)/$*:/$* \
@@ -110,7 +109,7 @@ dl-dir:
 		make O=/$* BR2_EXTERNAL=/build -C /build/buildroot reglinux-$*_defconfig
 
 %-build: reglinux-docker-image %-config ccache-dir dl-dir
-	@$(DOCKER) run -t --init --rm \
+	@$(DOCKER) run --init --rm \
 		-v $(PROJECT_DIR):/build \
 		-v $(DL_DIR):/build/buildroot/dl \
 		-v $(OUTPUT_DIR)/$*:/$* \
@@ -123,7 +122,7 @@ dl-dir:
 		make $(MAKE_OPTS) O=/$* BR2_EXTERNAL=/build -C /build/buildroot $(CMD)
 
 %-source: reglinux-docker-image %-config ccache-dir dl-dir
-	@$(DOCKER) run -t --init --rm \
+	@$(DOCKER) run --init --rm \
 		-v $(PROJECT_DIR):/build \
 		-v $(DL_DIR):/build/buildroot/dl \
 		-v $(OUTPUT_DIR)/$*:/$* \
@@ -136,7 +135,7 @@ dl-dir:
 		make $(MAKE_OPTS) O=/$* BR2_EXTERNAL=/build -C /build/buildroot source
 
 %-show-build-order: reglinux-docker-image %-config ccache-dir dl-dir
-	@$(DOCKER) run -t --init --rm \
+	@$(DOCKER) run --init --rm \
 		-v $(PROJECT_DIR):/build \
 		-v $(DL_DIR):/build/buildroot/dl \
 		-v $(OUTPUT_DIR)/$*:/$* \
@@ -149,7 +148,7 @@ dl-dir:
 		make $(MAKE_OPTS) O=/$* BR2_EXTERNAL=/build -C /build/buildroot show-build-order
 
 %-kernel: reglinux-docker-image %-config ccache-dir dl-dir
-	@$(DOCKER) run -t --init --rm \
+	@$(DOCKER) run -it --init --rm \
 		-v $(PROJECT_DIR):/build \
 		-v $(DL_DIR):/build/buildroot/dl \
 		-v $(OUTPUT_DIR)/$*:/$* \
@@ -162,7 +161,7 @@ dl-dir:
 		make $(MAKE_OPTS) O=/$* BR2_EXTERNAL=/build -C /build/buildroot linux-menuconfig
 
 %-graph-depends: reglinux-docker-image %-config ccache-dir dl-dir
-	@$(DOCKER) run -it --init --rm \
+	@$(DOCKER) run --init --rm \
 		-v $(PROJECT_DIR):/build \
 		-v $(DL_DIR):/build/buildroot/dl \
 		-v $(OUTPUT_DIR)/$*:/$* \
@@ -175,7 +174,7 @@ dl-dir:
 		make O=/$* BR2_EXTERNAL=/build BR2_GRAPH_OUT=svg -C /build/buildroot graph-depends
 
 %-graph-build: reglinux-docker-image %-config ccache-dir dl-dir
-	@$(DOCKER) run -it --init --rm \
+	@$(DOCKER) run --init --rm \
 		-v $(PROJECT_DIR):/build \
 		-v $(DL_DIR):/build/buildroot/dl \
 		-v $(OUTPUT_DIR)/$*:/$* \
@@ -188,7 +187,7 @@ dl-dir:
 		make O=/$* BR2_EXTERNAL=/build BR2_GRAPH_OUT=svg -C /build/buildroot graph-build
 
 %-graph-size: reglinux-docker-image %-config ccache-dir dl-dir
-	@$(DOCKER) run -it --init --rm \
+	@$(DOCKER) run --init --rm \
 		-v $(PROJECT_DIR):/build \
 		-v $(DL_DIR):/build/buildroot/dl \
 		-v $(OUTPUT_DIR)/$*:/$* \
@@ -202,7 +201,7 @@ dl-dir:
 
 %-shell: reglinux-docker-image output-dir-%
 	$(if $(BATCH_MODE),$(if $(CMD),,$(error "not suppoorted in BATCH_MODE if CMD not specified!")),)
-	@$(DOCKER) run -t --init --rm \
+	@$(DOCKER) run -it --init --rm \
 		-v $(PROJECT_DIR):/build \
 		-v $(DL_DIR):/build/buildroot/dl \
 		-v $(OUTPUT_DIR)/$*:/$* \
@@ -216,7 +215,7 @@ dl-dir:
 		$(CMD)
 
 %-ccache-stats: reglinux-docker-image %-config ccache-dir dl-dir
-	@$(DOCKER) run -t --init --rm \
+	@$(DOCKER) run --init --rm \
 		-v $(PROJECT_DIR):/build \
 		-v $(DL_DIR):/build/buildroot/dl \
 		-v $(OUTPUT_DIR)/$*:/$* \

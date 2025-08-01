@@ -1,0 +1,1 @@
+gsplusBin = '/usr/bin/GSplus'

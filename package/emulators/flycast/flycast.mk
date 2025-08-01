@@ -3,7 +3,7 @@
 # flycast
 #
 ################################################################################
-FLYCAST_VERSION = v2.4
+FLYCAST_VERSION = v2.5
 FLYCAST_SITE = https://github.com/flyinghead/flycast.git
 FLYCAST_SITE_METHOD=git
 FLYCAST_GIT_SUBMODULES=YES
@@ -29,11 +29,6 @@ ifeq ($(BR2_PACKAGE_REGLINUX_VULKAN),y)
     FLYCAST_CONF_OPTS += -DUSE_VULKAN=ON
 else
     FLYCAST_CONF_OPTS += -DUSE_VULKAN=OFF
-endif
-
-ifeq ($(BR2_PACKAGE_HAS_LIBMALI),y)
-    FLYCAST_DEPENDENCIES += libmali
-    FLYCAST_CONF_OPTS += -DUSE_MALI=ON
 endif
 
 ifeq ($(BR2_PACKAGE_SYSTEM_TARGET_RK3399),y)

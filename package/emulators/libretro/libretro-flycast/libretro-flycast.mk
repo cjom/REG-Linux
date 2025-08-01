@@ -3,7 +3,7 @@
 # libretro-flycast
 #
 ################################################################################
-LIBRETRO_FLYCAST_VERSION = v2.4
+LIBRETRO_FLYCAST_VERSION = $(FLYCAST_VERSION)
 LIBRETRO_FLYCAST_SITE = https://github.com/flyinghead/flycast.git
 LIBRETRO_FLYCAST_SITE_METHOD=git
 LIBRETRO_FLYCAST_GIT_SUBMODULES=YES
@@ -34,12 +34,6 @@ ifeq ($(BR2_PACKAGE_REGLINUX_VULKAN),y)
     LIBRETRO_FLYCAST_CONF_OPTS += -DUSE_VULKAN=ON
 else
     LIBRETRO_FLYCAST_CONF_OPTS += -DUSE_VULKAN=OFF
-endif
-
-# libmali hack
-ifeq ($(BR2_PACKAGE_HAS_LIBMALI),y)
-    LIBRETRO_FLYCAST_DEPENDENCIES += libmali
-    LIBRETRO_FLYCAST_CONF_OPTS += -DUSE_MALI=ON
 endif
 
 ifeq ($(BR2_PACKAGE_SYSTEM_TARGET_RK3399),y)

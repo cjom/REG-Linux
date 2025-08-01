@@ -3,8 +3,8 @@
 # libretro-puae2021
 #
 ################################################################################
-# Version: Commits on Jan 27, 2025
-LIBRETRO_PUAE2021_VERSION = 8512ee2994c4b517517820d5a1e50ee96b43a52b
+# Version: Commits on May 24, 2025
+LIBRETRO_PUAE2021_VERSION = 71d105288333ce63aeaaa20ebb1dfe07c24d050f
 LIBRETRO_PUAE2021_SITE = $(call github,libretro,libretro-uae,$(LIBRETRO_PUAE2021_VERSION))
 LIBRETRO_PUAE2021_LICENSE = GPLv2
 
@@ -20,6 +20,8 @@ else ifeq ($(BR2_PACKAGE_SYSTEM_TARGET_BCM2711),y)
 LIBRETRO_PUAE2021_PLATFORM = rpi4
 else ifeq ($(BR2_PACKAGE_SYSTEM_TARGET_BCM2712),y)
 LIBRETRO_PUAE2021_PLATFORM = rpi5
+else ifeq ($(BR2_cortex_a7),y)
+LIBRETRO_PUAE_PLATFORM = classic_armv7_a7
 endif
 
 define LIBRETRO_PUAE2021_BUILD_CMDS

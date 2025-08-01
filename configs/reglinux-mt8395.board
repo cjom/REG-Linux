@@ -3,19 +3,27 @@ include reglinux-board.common
 
 # Target definition
 BR2_aarch64=y
-BR2_cortex_a78_a55=y
+BR2_cortex_a76_a55=y
 BR2_ARM_FPU_NEON_FP_ARMV8=y
 BR2_PACKAGE_SYSTEM_TARGET_MT8395=y
+# GCC 14 does not support -mcpu=cortex-a78.cortex-a55 -mtune=cortex-a78.cortex-a55
 BR2_TARGET_OPTIMIZATION="-pipe"
-# GCC 13 does not support -mcpu=cortex-a78.cortex-a55 -mtune=cortex-a78.cortex-a55
+# -mcpu=cortex-a76.cortex-a55 -mtune=cortex-a76.cortex-a55"
 BR2_TARGET_GENERIC_GETTY_PORT="/dev/ttyFIQ0"
 BR2_TARGET_GENERIC_GETTY_BAUDRATE_921600=y
 BR2_GLOBAL_PATCH_DIR="$(BR2_EXTERNAL_REGLINUX_PATH)/board/patches $(BR2_EXTERNAL_REGLINUX_PATH)/board/reglinux/patches/aarch64 $(BR2_EXTERNAL_REGLINUX_PATH)/board/mediatek/patches $(BR2_EXTERNAL_REGLINUX_PATH)/board/mediatek/mt8395/patches"
 BR2_ROOTFS_OVERLAY="$(BR2_EXTERNAL_REGLINUX_PATH)/board/fsoverlay $(BR2_EXTERNAL_REGLINUX_PATH)/board/mediatek/fsoverlay $(BR2_EXTERNAL_REGLINUX_PATH)/board/mediatek/mt8395/fsoverlay"
 
+# Kernel headers (needed, custom kernel)
+BR2_KERNEL_HEADERS_AS_KERNEL=y
+BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_6_15=y
+
 # Kernel
 BR2_LINUX_KERNEL=y
-BR2_LINUX_KERNEL_LATEST_VERSION=y
+BR2_LINUX_KERNEL_CUSTOM_GIT=y
+BR2_LINUX_KERNEL_CUSTOM_REPO_URL="https://gitlab.collabora.com/mediatek/aiot/linux"
+# HEAD tip of mediatek-dev branch
+BR2_LINUX_KERNEL_CUSTOM_REPO_VERSION="c6ab92342c678923db55c8da7f139d99e2d04f6a"
 BR2_LINUX_KERNEL_PATCH="$(BR2_EXTERNAL_REGLINUX_PATH)/board/mediatek/mt8395/linux_patches $(BR2_EXTERNAL_REGLINUX_PATH)/board/reglinux/linux_patches/aarch64"
 BR2_LINUX_KERNEL_USE_CUSTOM_CONFIG=y
 BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE="$(BR2_EXTERNAL_REGLINUX_PATH)/board/mediatek/mt8395/linux-defconfig.config"
@@ -35,10 +43,11 @@ BR2_PACKAGE_REGLINUX_XWAYLAND=y
 # Mesa Panfrost
 BR2_PACKAGE_SYSTEM_PANFROST_MESA3D=y
 
-# TODO bootloader
+# Bootloader
+BR2_TARGET_GRUB2=y
+BR2_TARGET_GRUB2_ARM64_EFI=y
+BR2_TARGET_GRUB2_BUILTIN_MODULES_EFI="boot linux ext2 fat squash4 part_msdos part_gpt normal efi_gop search search_fs_file search_fs_uuid search_label chain reboot"
+BR2_PACKAGE_EFIVAR=y
 
 # Filesystem
 BR2_TARGET_ROOTFS_CPIO_LZ4=y
-
-# Parallel build ON
-BR2_PER_PACKAGE_DIRECTORIES=y

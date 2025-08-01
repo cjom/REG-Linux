@@ -3,8 +3,8 @@ bool "release mode"
 default !BR2_ENABLE_DEBUG
 
 ##### define variables to use in this file
-if BR2_PACKAGE_BATOCERA_RPI_MESA3D
-	config BR2_PACKAGE_BATOCERA_RPI_ANY
+if BR2_PACKAGE_SYSTEM_RPI_MESA3D
+	config BR2_PACKAGE_SYSTEM_TARGET_RPI_ANY
 	bool "any rpi"
 	default y
 endif
@@ -96,6 +96,7 @@ if BR2_PACKAGE_SYSTEM_TARGET_X86_ANY          || \
    BR2_PACKAGE_SYSTEM_TARGET_BCM2712          || \
    BR2_PACKAGE_SYSTEM_TARGET_JH7110           || \
    BR2_PACKAGE_SYSTEM_TARGET_K1               || \
+   BR2_PACKAGE_SYSTEM_TARGET_TH1520           || \
    BR2_PACKAGE_SYSTEM_TARGET_H616             || \
    BR2_PACKAGE_SYSTEM_TARGET_H700             || \
    BR2_PACKAGE_SYSTEM_TARGET_AMLOGIC_GLES3    || \
@@ -148,7 +149,7 @@ config BR2_TARGET_BATOCERA_IMAGES_DEFINITIONS
 	default "rockchip/rk3288/tinkerboard rockchip/rk3288/miqi"					if BR2_PACKAGE_SYSTEM_TARGET_RK3288
 	default "rockchip/rk3326"									if BR2_PACKAGE_SYSTEM_TARGET_RK3326
 	default "rockchip/rk3328/rock64 rockchip/rk3328/renegade"					if BR2_PACKAGE_SYSTEM_TARGET_RK3328
-	default "rockchip/rk3399/tinkerboard2 rockchip/rk3399/orangepi-800 rockchip/rk3399/anbernic-rg552 rockchip/rk3399/rockpro64 rockchip/rk3399/rock960 rockchip/rk3399/orangepi-4-lts rockchip/rk3399/rock-pi-4 rockchip/rk3399/nanopi-m4v2 rockchip/rk3399/hugsun-x99" \
+	default "rockchip/rk3399/anbernic-rg552 rockchip/rk3399/rockpro64 rockchip/rk3399/orangepi-800 rockchip/rk3399/rock960 rockchip/rk3399/rock-pi-4 rockchip/rk3399/orangepi-4-lts rockchip/rk3399/nanopi-m4v2 rockchip/rk3399/hugsun-x99 rockchip/rk3399/tinkerboard2" \
 													if BR2_PACKAGE_SYSTEM_TARGET_RK3399
 	default "rockchip/rk3568/odroid-m1 rockchip/rk3568/rock-3a rockchip/rk3568/rock-3c rockchip/rk3568/anbernic-rgxx3 rockchip/rk3568/firefly-station-m2 rockchip/rk3568/firefly-station-p2" \
 													if BR2_PACKAGE_SYSTEM_TARGET_RK3568
@@ -177,6 +178,9 @@ config BR2_TARGET_BATOCERA_IMAGES_DEFINITIONS
 
 	# SpacemiT targets
 	default "spacemit/k1/bananapi-f3"								if BR2_PACKAGE_SYSTEM_TARGET_K1
+
+	# T-Head targets
+	default "thead/th1520"										if BR2_PACKAGE_SYSTEM_TARGET_TH1520
 
 	# Asahi target
 	default "asahi"											if BR2_PACKAGE_SYSTEM_TARGET_ASAHI
@@ -320,6 +324,9 @@ config BR2_PACKAGE_SYSTEM_TARGET_JH7110
 
 config BR2_PACKAGE_SYSTEM_TARGET_K1
 	bool "k1"
+
+config BR2_PACKAGE_SYSTEM_TARGET_TH1520
+	bool "th1520"
 
 endchoice
 

@@ -3,13 +3,14 @@
 # vita3k
 #
 ################################################################################
-# Version: Commits on Mar 29, 2025
-VITA3K_VERSION = f370ccc1b02d590c102f91a056f274fae26e331f
+# Version: Commits on Jul 24, 2025
+VITA3K_VERSION = 4e526f0c8057e4eae0e00a323d7d4c58cdee8813
 VITA3K_SITE = https://github.com/vita3k/vita3k
 VITA3K_SITE_METHOD=git
 VITA3K_GIT_SUBMODULES=YES
 VITA3K_LICENSE = GPLv3
-VITA3K_DEPENDENCIES = sdl2 sdl2_image sdl2_ttf zlib libogg libvorbis boost python-ruamel-yaml libgtk3
+VITA3K_DEPENDENCIES = sdl2 sdl2_image sdl2_ttf zlib libogg libvorbis
+VITA3K_DEPENDENCIES += boost python-ruamel-yaml libgtk3 fmt libcurl
 VITA3K_EXTRACT_DEPENDENCIES = host-libcurl
 
 VITA3K_SUPPORTS_IN_SOURCE_BUILD = NO
@@ -18,7 +19,7 @@ VITA3K_CONF_OPTS = -DCMAKE_BUILD_TYPE=Release \
                    -DBUILD_SHARED_LIBS=OFF \
                    -DUSE_DISCORD_RICH_PRESENCE=OFF \
                    -DUSE_VITA3K_UPDATE=OFF \
-                   -DBUILD_EXTERNAL=ON
+                   -DBUILD_EXTERNAL=OFF
 
 ifeq ($(BR2_PACKAGE_SYSTEM_TARGET_X86_64_V3),y)
     VITA3K_CONF_OPTS += -DXXH_X86DISPATCH_ALLOW_AVX=ON
@@ -29,11 +30,6 @@ endif
 #define VITA3K_GET_SUBMODULE
 #    mkdir -p $(@D)/external
 #    cd $(@D)/external && rm -Rf nativefiledialog-cmake && git clone https://github.com/Vita3K/nativefiledialog-cmake
-#endef
-
-#define VITA3K_FFMPEG_GIT
-#    mkdir $(@D)/.git/
-#    cp -ruv $(DL_DIR)/$(VITA3K_DL_SUBDIR)/git/.git/* $(@D)/.git/
 #endef
 
 define VITA3K_INSTALL_TARGET_CMDS
@@ -49,7 +45,6 @@ define VITA3K_INSTALL_EVMAPY
 endef
 
 #VITA3K_POST_EXTRACT_HOOKS = VITA3K_GET_SUBMODULE
-#VITA3K_POST_EXTRACT_HOOKS += VITA3K_FFMPEG_GIT
 VITA3K_POST_INSTALL_TARGET_HOOKS = VITA3K_INSTALL_EVMAPY
 
 $(eval $(cmake-package))

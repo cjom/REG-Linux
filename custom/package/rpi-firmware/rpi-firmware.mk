@@ -4,7 +4,8 @@
 #
 ################################################################################
 
-RPI_FIRMWARE_VERSION = 1.20250305
+# Please keep in sync with configs/raspberrypi*_deconfig
+RPI_FIRMWARE_VERSION = 35441eb8dfd922f3c283bb1a75b22412e3e06c54
 RPI_FIRMWARE_SITE = $(call github,raspberrypi,firmware,$(RPI_FIRMWARE_VERSION))
 RPI_FIRMWARE_LICENSE = BSD-3-Clause
 RPI_FIRMWARE_LICENSE_FILES = boot/LICENCE.broadcom

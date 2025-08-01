@@ -4,14 +4,15 @@
 #
 ################################################################################
 
-CEMU_VERSION = v2.6
+# Unstable because of WIP aarch64 upstreamed support
+CEMU_VERSION = 57fe7a53f1c842c3bfb222d2a82666dc7315f01f
 CEMU_SITE = https://github.com/cemu-project/Cemu
 CEMU_LICENSE = GPLv2
 CEMU_SITE_METHOD=git
 CEMU_GIT_SUBMODULES=YES
 CEMU_DEPENDENCIES = sdl2 host-pugixml pugixml rapidjson boost libpng libcurl \
                     libzip host-glslang glslang zlib zstd wxwidgets fmt glm upower \
-                    host-nasm host-zstd host-libusb libusb bluez5_utils
+                    host-nasm host-zstd host-libusb libusb bluez5_utils webp
 
 CEMU_SUPPORTS_IN_SOURCE_BUILD = NO
 
@@ -19,7 +20,12 @@ CEMU_CONF_OPTS += -DCMAKE_BUILD_TYPE=Release
 CEMU_CONF_OPTS += -DBUILD_SHARED_LIBS=OFF
 CEMU_CONF_OPTS += -DENABLE_DISCORD_RPC=OFF
 CEMU_CONF_OPTS += -DENABLE_VCPKG=OFF
+CEMU_CONF_OPTS += -DLINUX=ON
 CEMU_CONF_OPTS += -DCMAKE_CXX_FLAGS="$(TARGET_CXXFLAGS) -I$(STAGING_DIR)/usr/include/glslang"
+
+ifeq ($(BR2_aarch64),y)
+    CEMU_CONF_OPTS += -DCEMU_CXX_FLAGS=-flax-vector-conversions
+endif
 
 # REG configure OpenGL
 ifeq ($(BR2_PACKAGE_HAS_LIBGL),y)
@@ -67,11 +73,5 @@ define CEMU_INSTALL_TARGET_CMDS
 	cp -pr $(BR2_EXTERNAL_REGLINUX_PATH)/package/emulators/cemu/wiiu.keys \
 	    $(TARGET_DIR)/usr/share/evmapy
 endef
-
-define EXTRACT_CEMU_AARCH64_DEPS
-	cd $(@D)/dependencies/ && tar xzvf $(BR2_EXTERNAL_REGLINUX_PATH)/package/emulators/cemu/aarch64_deps.tar.gz
-endef
-
-CEMU_PRE_CONFIGURE_HOOKS += EXTRACT_CEMU_AARCH64_DEPS
 
 $(eval $(cmake-package))
