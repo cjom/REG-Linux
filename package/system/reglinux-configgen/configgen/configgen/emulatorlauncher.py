@@ -612,7 +612,7 @@ if __name__ == '__main__':
     # --- Argument Parsing ---
     parser = argparse.ArgumentParser(description='Emulator Launcher Script')
 
-    maxnbplayers = 8
+    maxnbplayers = 4
     # Dynamically create arguments for each player's controller.
     for p in range(1, maxnbplayers + 1):
         parser.add_argument(f"-p{p}index",      help=f"player {p} controller index",             type=int)

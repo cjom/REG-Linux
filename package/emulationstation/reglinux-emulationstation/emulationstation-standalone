@@ -191,6 +191,23 @@ if [[ "$1" = "--stop-rebooting" ]]; then
     rm -f "${REBOOT_FLAG}" && exit 0  # Clear reboot flag and exit
 fi
 
+# Make sure Player 1 uses CHA1 and Player 2 uses CHA2
+for JOYINDEX in /dev/input/js[0-9]
+do
+  IDMODEL=$(udevadm info -q property "$JOYINDEX" | grep 'ID_MODEL=')
+  DEVPATH=$(udevadm info -q property $JOYINDEX | sed -n -e 's#^DEVPATH=\(.*\)/0003:.*$#/sys\1#p')
+  case ${IDMODEL#*=} in
+    CHA1)
+      sed -i -e "s#input_player1_joypad_index.*#input_player1_joypad_index = ${JOYINDEX: -1}#" /userdata/system/configs/retroarch/retroarch.cfg
+      sed -i -e "s#\"INPUT P1PATH\".*#\"INPUT P1PATH\" value\=\"$DEVPATH\" /\>#" /userdata/system/configs/emulationstation/es_settings.cfg
+    ;;
+    CHA2) 
+      sed -i -e "s#input_player2_joypad_index.*#input_player2_joypad_index = ${JOYINDEX: -1}#" /userdata/system/configs/retroarch/retroarch.cfg
+      sed -i -e "s#\"INPUT P2PATH\".*#\"INPUT P2PATH\" value\=\"$DEVPATH\" /\>#" /userdata/system/configs/emulationstation/es_settings.cfg
+    ;;
+  esac
+done
+
 # Set reboot flag to enable restart on stop
 touch "${REBOOT_FLAG}" || { log_message "Error: Failed to create reboot flag"; exit 1; }
 
@@ -211,8 +228,12 @@ while [[ -e "${REBOOT_FLAG}" ]]; do
     configure_rotation "${settings_output}" "${settings_output2}" "${settings_output3}"
     configure_resolution "${settings_output}" "${settings_output2}" "${settings_output3}"
 
-    # Launch EmulationStation
-    launch_emulationstation "${settings_output}" "${settings_output2}" "${settings_output3}"
+    if [ "$(/usr/bin/system-settings-get -f /boot/system-boot.conf system.es.atstartup)" = "0" ]; then
+        retroarch
+    else
+        # Launch EmulationStation
+        launch_emulationstation "${settings_output}" "${settings_output2}" "${settings_output3}"
+    fi
 
     # Check for restart or shutdown requests
     if [[ -e "/tmp/restart.please" || -e "/tmp/shutdown.please" ]]; then
