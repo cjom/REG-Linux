@@ -3,24 +3,28 @@
 # MEDNAFEN
 #
 ################################################################################
-# Version.: Release on Apr 6, 2024
-MEDNAFEN_VERSION = 1.32.1
-MEDNAFEN_SOURCE = mednafen-$(MEDNAFEN_VERSION).tar.xz
-MEDNAFEN_SITE = https://mednafen.github.io/releases/files
+# Release on Apr 6, 2024
+#MEDNAFEN_VERSION = 1.32.1
+#MEDNAFEN_SOURCE = mednafen-$(MEDNAFEN_VERSION).tar.xz
+#https://mednafen.github.io/releases/files
+# REG fork with CHD support
+MEDNAFEN_VERSION = b04f030165979292fcb817dd8cdc2a31b2bec2b6
+MEDNAFEN_SITE = https://github.com/REG-Linux/mednafen.git
+MEDNAFEN_SITE_METHOD = git
 MEDNAFEN_LICENSE = GPLv3
-MEDNAFEN_DEPENDENCIES = sdl2 zlib zstd libpng flac
+MEDNAFEN_DEPENDENCIES = sdl2 zlib libpng flac
 
-# Disable mednafen "useless" cores
+# Disable mednafen unused cores
 MEDNAFEN_CONF_OPTS  = --disable-ssfplay --disable-sasplay
 MEDNAFEN_CONF_OPTS += --disable-nes --disable-snes --disable-snes-faust
 MEDNAFEN_CONF_OPTS += --disable-gb --disable-gba
 MEDNAFEN_CONF_OPTS += --disable-sms --disable-md
 
-# Disable mednafen "useless" features
+# Disable mednafen unused features
 MEDNAFEN_CONF_OPTS += --disable-debugger
 
 # Configurable PCFX core
-ifeq ($(BR2_PACKAGE_MEDNAFEN_PSX),y)
+ifeq ($(BR2_PACKAGE_MEDNAFEN_PCFX),y)
 MEDNAFEN_CONF_OPTS += --enable-pcfx
 else
 MEDNAFEN_CONF_OPTS += --disable-pcfx

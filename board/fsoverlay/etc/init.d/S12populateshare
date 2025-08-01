@@ -26,7 +26,7 @@ case "$1" in
             grep -Fvx -f <(cd "$OUT" || exit; find ./roms/choko \( -type f -o -xtype l \)) <(cd "$IN" || exit; find ./roms/choko \( -type f -o -xtype l \)) >> /tmp/updateuserdata.lst
         fi
         if [ -d "$OUT"/system ]; then
-            grep -Fvx -f <(cd "$OUT" || exit; find ./system \( -type f -o -xtype l \)) <(cd "$IN" || exit; find ./system \( -type f -o -xtype l \)) >> /tmp/updateuserdata.lst
+            grep -Fvx -f <(cd "$OUT" || exit; find ./system -mindepth 1 -maxdepth 1) <(cd "$IN" || exit; find ./system -mindepth 1 -maxdepth 1) >> /tmp/updateuserdata.lst
         fi
 
         # USUALLY ONLY NEW DIRECTORIES ARE UPDATED WHEN REG-LINUX IS UPDATED
@@ -53,7 +53,7 @@ case "$1" in
 
             # And REG-linux system configs, services but do not update user settings.
             if [ -d "$OUT"/system ]; then
-                find ./system \( -type f -o -xtype l \) \( ! -iname "es_settings.cfg" -a ! -iname "es_input.cfg" -a ! -iname "system.conf" \) >> /tmp/updateuserdata.lst
+                find ./system \( -type f -o -xtype l \) \( ! -iname "es_settings.cfg" -a ! -iname "gamecontrollerdb.txt" -a ! -iname "system.conf" \) >> /tmp/updateuserdata.lst
             fi
         fi
 

@@ -3,8 +3,8 @@
 # libretro-vice
 #
 ################################################################################
-# Version: Commits on Feb 7, 2025
-LIBRETRO_VICE_VERSION = 67b18766e5911ed413ee999aefebc224adb6956a
+# Version: Commits on Jul 30, 2025
+LIBRETRO_VICE_VERSION = e9f8ac034ddef3025f0567768f7af8219f7cfdb8
 LIBRETRO_VICE_SITE = $(call github,libretro,vice-libretro,$(LIBRETRO_VICE_VERSION))
 LIBRETRO_VICE_LICENSE = GPLv2
 
@@ -20,6 +20,8 @@ else ifeq ($(BR2_PACKAGE_SYSTEM_TARGET_BCM2711),y)
 LIBRETRO_VICE_PLATFORM = rpi4
 else ifeq ($(BR2_PACKAGE_SYSTEM_TARGET_BCM2712),y)
 LIBRETRO_VICE_PLATFORM = rpi5
+else ifeq ($(BR2_cortex_a7),y)
+LIBRETRO_PUAE_PLATFORM = classic_armv7_a7
 else ifeq ($(BR2_arm),y)
 LIBRETRO_VICE_PLATFORM = armv neon
 else ifeq ($(BR2_aarch64),y)

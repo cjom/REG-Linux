@@ -1,0 +1,1 @@
+melondsBin = '/usr/bin/melonDS'

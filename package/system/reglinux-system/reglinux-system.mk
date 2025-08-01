@@ -13,8 +13,9 @@ REGLINUX_SYSTEM_SOURCE=
 ### Beta release MUST BE marked as "prerelease" ( tag is version = YY.MM-beta-[1-9] )
 ### Stable release must be marked as "latest" ( tag is version = YY.MM.[0-9] )
 
-# *** CHA *** system-update, system-config might need fix to deal with version string
-REGLINUX_SYSTEM_VERSION = 25.02-Choko-dev
+REGLINUX_SYSTEM_ID_VERSION = 25.07
+REGLINUX_SYSTEM_RELEASE_TYPE=Choko-dev
+REGLINUX_SYSTEM_VERSION = $(REGLINUX_SYSTEM_ID_VERSION)-$(REGLINUX_SYSTEM_RELEASE_TYPE)
 REGLINUX_SYSTEM_DATE_TIME = $(shell date "+%Y/%m/%d %H:%M")
 REGLINUX_SYSTEM_DATE = $(shell date "+%Y/%m/%d")
 REGLINUX_SYSTEM_DEPENDENCIES = tzdata
@@ -79,7 +80,7 @@ else ifeq ($(BR2_PACKAGE_SYSTEM_TARGET_ODIN),y)
 	REGLINUX_SYSTEM_ARCH=odin
 else ifeq ($(BR2_PACKAGE_SYSTEM_TARGET_RK3588),y)
 	REGLINUX_SYSTEM_ARCH=rk3588
-else ifeq ($(BR2_PACKAGE_SYSTEM_TARGET_JH7110)$(BR2_PACKAGE_BATOCERA_K1),y)
+else ifeq ($(BR2_PACKAGE_SYSTEM_TARGET_JH7110)$(BR2_PACKAGE_SYSTEM_TARGET_K1)$(BR2_PACKAGE_SYSTEM_TARGET_TH1520),y)
 	REGLINUX_SYSTEM_ARCH=riscv
 else ifeq ($(BR2_PACKAGE_SYSTEM_TARGET_SM8250),y)
 	REGLINUX_SYSTEM_ARCH=sm8250
@@ -90,10 +91,10 @@ else
 endif
 
 ifneq (,$(findstring dev,$(REGLINUX_SYSTEM_VERSION)))
-    REGLINUX_SYSTEM_COMMIT = \
-	    "-$(shell cd $(BR2_EXTERNAL_REGLINUX_PATH) && git rev-parse --short HEAD)"
+    REGLINUX_SYSTEM_BUILD_ID = \
+	    "$(shell cd $(BR2_EXTERNAL_REGLINUX_PATH) && git rev-parse --short HEAD)"
 else
-    REGLINUX_SYSTEM_COMMIT =
+    REGLINUX_SYSTEM_BUILD_ID =
 endif
 
 define REGLINUX_SYSTEM_INSTALL_TARGET_CMDS
@@ -101,7 +102,7 @@ define REGLINUX_SYSTEM_INSTALL_TARGET_CMDS
 	# version/arch
 	mkdir -p $(TARGET_DIR)/usr/share/reglinux
 	echo -n "$(REGLINUX_SYSTEM_ARCH)" > $(TARGET_DIR)/usr/share/reglinux/system.arch
-	echo $(REGLINUX_SYSTEM_VERSION)$(REGLINUX_SYSTEM_COMMIT) \
+	echo $(REGLINUX_SYSTEM_VERSION)-$(REGLINUX_SYSTEM_BUILD_ID) \
 	    $(REGLINUX_SYSTEM_DATE_TIME) > \
 		$(TARGET_DIR)/usr/share/reglinux/system.version
 
@@ -111,7 +112,7 @@ define REGLINUX_SYSTEM_INSTALL_TARGET_CMDS
 	mkdir -p $(TARGET_DIR)/usr/share/reglinux/datainit/system
 	cp $(BR2_EXTERNAL_REGLINUX_PATH)/package/system/reglinux-system/system.conf \
 	    $(TARGET_DIR)/usr/share/reglinux/datainit/system
-	if test "$(BR2_ENABLE_DEBUG)" = "y" ; then sed -i "s/system\.security\.enabled\=0/system\.security\.enabled\=1/" "$(TARGET_DIR)/usr/share/reglinux/datainit/system/system.conf"; fi
+	if test "$(BR2_ENABLE_DEBUG)" != "y" ; then sed -i "s/system\.security\.enabled\=0/system\.security\.enabled\=1/" "$(TARGET_DIR)/usr/share/reglinux/datainit/system/system.conf"; fi
 
 	# system-boot.conf
 	$(INSTALL) -D -m 0644 \

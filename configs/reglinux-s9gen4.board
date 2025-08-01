@@ -1,4 +1,4 @@
-include toolchain-gcc13-glibc.common
+include toolchain-gcc14-glibc.common
 include reglinux-board.common
 
 # Target definition
@@ -6,7 +6,8 @@ BR2_aarch64=y
 BR2_cortex_a35=y
 BR2_ARM_FPU_NEON_FP_ARMV8=y
 BR2_PACKAGE_SYSTEM_TARGET_S9GEN4=y
-BR2_TARGET_OPTIMIZATION="-pipe -fsigned-char -mcpu=cortex-a35+crypto -mtune=cortex-a35"
+BR2_TARGET_OPTIMIZATION="-pipe -fsigned-char"
+# -mcpu=cortex-a35+crypto -mtune=cortex-a35"
 BR2_TARGET_GENERIC_GETTY_PORT="ttyS0"
 BR2_TARGET_GENERIC_GETTY_BAUDRATE_115200=y
 BR2_GLOBAL_PATCH_DIR="$(BR2_EXTERNAL_REGLINUX_PATH)/board/patches $(BR2_EXTERNAL_REGLINUX_PATH)/board/reglinux/patches/aarch64 $(BR2_EXTERNAL_REGLINUX_PATH)/board/reglinux/patches/gles $(BR2_EXTERNAL_REGLINUX_PATH)/board/amlogic/patches $(BR2_EXTERNAL_REGLINUX_PATH)/board/amlogic/s9gen4/patches"
@@ -45,15 +46,8 @@ BR2_PACKAGE_REGLINUX_VULKAN=y
 BR2_PACKAGE_REGLINUX_SWAY=y
 BR2_PACKAGE_REGLINUX_XWAYLAND=y
 
-# Firmware
-BR2_PACKAGE_FIRMWARE_ARMBIAN=y
-#BR2_PACKAGE_FIRMWARE_KHADAS_VIM1S=y
-
 # Bootloader
 BR2_PACKAGE_UBOOT_VIM1S=y
 
 # Filesystem
 BR2_TARGET_ROOTFS_CPIO_GZIP=y
-
-# Parallel build ON
-BR2_PER_PACKAGE_DIRECTORIES=y

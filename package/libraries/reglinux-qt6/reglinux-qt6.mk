@@ -15,7 +15,7 @@ endef
 REGLINUX_QT6_POST_BUILD_HOOKS = REGLINUX_QT6_COMPUTE_STAGING_DIR
 
 else
-REGLINUX_QT6_VERSION = 6.7.3
+REGLINUX_QT6_VERSION = 6.8.3
 REGLINUX_QT6_SITE = $(call github,REG-Linux,REG-Qt6,$(REGLINUX_QT6_VERSION))
 
 REGLINUX_QT6_DEPENDENCIES = host-double-conversion double-conversion host-libb2 libb2 host-pcre2 pcre2 host-zlib zlib icu
@@ -43,8 +43,8 @@ REGLINUX_QT6_ARCH = unknown
 # Cortex A15.A7
 #else ifeq ($(BR2_cortex_a15_a7),y)
 #REGLINUX_QT6_ARCH = odroidxu4
-# Cortex A17
 #else
+# Cortex A17
 ifeq ($(BR2_cortex_a17),y)
 REGLINUX_QT6_ARCH = rk3288
 # Cortex A53
@@ -78,11 +78,11 @@ endif
 # Mediatek MT8395 is cortex-a78.cortex-a55
 else ifeq ($(BR2_PACKAGE_SYSTEM_TARGET_MT8395),y)
 REGLINUX_QT6_ARCH = rk3588
-# Unknown AArch64 saphira CPU
-else ifeq ($(BR2_saphira),y)
-REGLINUX_QT6_ARCH = saphira
+# Asahi Linux
+else ifeq ($(BR2_PACKAGE_SYSTEM_TARGET_ASAHI),y)
+REGLINUX_QT6_ARCH = asahi
 # RISC-V 64 (rv64gc, aka imafd)
-else ifeq ($(BR2_PACKAGE_SYSTEM_TARGET_JH7110),y)
+else ifeq ($(BR2_PACKAGE_SYSTEM_TARGET_JH7110)$(BR2_PACKAGE_SYSTEM_TARGET_TH1520),y)
 REGLINUX_QT6_ARCH = jh7110
 # RISC-V 64 with vector extensions (aka imafdv)
 else ifeq ($(BR2_PACKAGE_SYSTEM_TARGET_K1),y)

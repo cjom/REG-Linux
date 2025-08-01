@@ -6,7 +6,8 @@ BR2_aarch64=y
 BR2_cortex_a72_a53=y
 BR2_ARM_FPU_NEON_FP_ARMV8=y
 BR2_PACKAGE_SYSTEM_TARGET_RK3399=y
-BR2_TARGET_OPTIMIZATION="-pipe -fsigned-char -mcpu=cortex-a72.cortex-a53+crypto -mtune=cortex-a72.cortex-a53"
+BR2_TARGET_OPTIMIZATION="-pipe -fsigned-char"
+# -mcpu=cortex-a72.cortex-a53+crypto -mtune=cortex-a72.cortex-a53"
 #BR2_TARGET_GENERIC_GETTY_PORT="tty1"
 BR2_TARGET_GENERIC_GETTY_BAUDRATE_115200=y
 BR2_GLOBAL_PATCH_DIR="$(BR2_EXTERNAL_REGLINUX_PATH)/board/patches $(BR2_EXTERNAL_REGLINUX_PATH)/board/reglinux/patches/aarch64 $(BR2_EXTERNAL_REGLINUX_PATH)/board/reglinux/patches/gles $(BR2_EXTERNAL_REGLINUX_PATH)/board/rockchip/patches $(BR2_EXTERNAL_REGLINUX_PATH)/board/rockchip/rk3399/patches"
@@ -14,9 +15,7 @@ BR2_ROOTFS_OVERLAY="$(BR2_EXTERNAL_REGLINUX_PATH)/board/fsoverlay $(BR2_EXTERNAL
 
 # Kernel
 BR2_LINUX_KERNEL=y
-BR2_LINUX_KERNEL_CUSTOM_VERSION=y
-BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE="6.6.79"
-BR2_KERNEL_HEADERS_6_6=y
+BR2_LINUX_KERNEL_LATEST_VERSION=y
 BR2_LINUX_KERNEL_PATCH="$(BR2_EXTERNAL_REGLINUX_PATH)/board/rockchip/rk3399/linux_patches $(BR2_EXTERNAL_REGLINUX_PATH)/board/reglinux/linux_patches/aarch64"
 BR2_LINUX_KERNEL_USE_CUSTOM_CONFIG=y
 BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE="$(BR2_EXTERNAL_REGLINUX_PATH)/board/rockchip/rk3399/linux-defconfig.config"
@@ -25,8 +24,7 @@ BR2_LINUX_KERNEL_NEEDS_HOST_OPENSSL=y
 
 # Build the DTB from the kernel sources
 BR2_LINUX_KERNEL_DTS_SUPPORT=y
-BR2_LINUX_KERNEL_INTREE_DTS_NAME="rockchip/rk3399-rockpro64 rockchip/rk3399-rock960 rockchip/rk3399-rock-pi-4b rockchip/rk3399-hugsun-x99"
-BR2_LINUX_KERNEL_CUSTOM_DTS_PATH="$(BR2_EXTERNAL_REGLINUX_PATH)/board/rockchip/rk3399/dts/rk3399-anbernic-rg552.dts $(BR2_EXTERNAL_REGLINUX_PATH)/board/rockchip/rk3399/dts/rk3399-orangepi-4-lts.dts $(BR2_EXTERNAL_REGLINUX_PATH)/board/rockchip/rk3399/dts/rk3399-orangepi-800.dts $(BR2_EXTERNAL_REGLINUX_PATH)/board/rockchip/rk3399/dts/rk3399-tinker-2.dts $(BR2_EXTERNAL_REGLINUX_PATH)/board/rockchip/rk3399/dts/rk3399-nanopi-m4v2.dts"
+BR2_LINUX_KERNEL_INTREE_DTS_NAME="rockchip/rk3399-orangepi-800 rockchip/rk3399-rockpro64 rockchip/rk3399-rock960 rockchip/rk3399-rock-pi-4b rockchip/rk3399-hugsun-x99 rockchip/rk3399-anbernic-rg552 rockchip/rk3399-orangepi-4-lts rockchip/rk3399-nanopi-m4v2 rockchip/rk3399-tinker-2"
 
 # Bootloader
 BR2_TARGET_ARM_TRUSTED_FIRMWARE_PLATFORM="rk3399"
@@ -52,7 +50,3 @@ BR2_PACKAGE_REGLINUX_SWAY=y
 
 # Filesystem
 BR2_TARGET_ROOTFS_CPIO_LZ4=y
-
-# Parallel build ON
-BR2_PER_PACKAGE_DIRECTORIES=y
-

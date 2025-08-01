@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-SWAY_VERSION = 1.10.1
+SWAY_VERSION = 1.11
 SWAY_SITE = https://github.com/swaywm/sway/releases/download/$(SWAY_VERSION)
 SWAY_LICENSE = MIT
 SWAY_LICENSE_FILES = LICENSE
@@ -55,8 +55,8 @@ endif
 # Install only what is needed avoiding systemd files
 define SWAY_INSTALL_TARGET_CMDS
 	mkdir -p $(TARGET_DIR)/usr/bin
-	$(INSTALL) -D $(@D)/build/sway/sway         $(TARGET_DIR)/usr/bin
-	$(INSTALL) -D $(@D)/build/swaymsg/swaymsg   $(TARGET_DIR)/usr/bin
+	$(INSTALL) -D $(@D)/buildroot-build/sway/sway         $(TARGET_DIR)/usr/bin
+	$(INSTALL) -D $(@D)/buildroot-build/swaymsg/swaymsg   $(TARGET_DIR)/usr/bin
 endef
 
 $(eval $(meson-package))

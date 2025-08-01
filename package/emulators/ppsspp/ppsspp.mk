@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PPSSPP_VERSION = v1.18.1
+PPSSPP_VERSION = v1.19.3
 PPSSPP_SITE = https://github.com/hrydgard/ppsspp.git
 PPSSPP_SITE_METHOD=git
 PPSSPP_GIT_SUBMODULES=YES
@@ -101,11 +101,6 @@ ifeq ($(BR2_PACKAGE_WAYLAND),y)
     PPSSPP_CONF_OPTS += -DUSE_WAYLAND_WSI=ON
 else
     PPSSPP_CONF_OPTS += -DUSE_WAYLAND_WSI=OFF
-endif
-
-ifeq ($(BR2_PACKAGE_HAS_LIBMALI),y)
-    PPSSPP_CONF_OPTS += -DCMAKE_EXE_LINKER_FLAGS=-lmali
-    PPSSPP_CONF_OPTS += -DCMAKE_SHARED_LINKER_FLAGS=-lmali
 endif
 
 PPSSPP_CONF_OPTS += -DCMAKE_C_FLAGS="$(PPSSPP_TARGET_CFLAGS)"

@@ -33,7 +33,7 @@ BR2_LINUX_KERNEL_DTS_SUPPORT=y
 BR2_LINUX_KERNEL_INTREE_DTS_NAME="allwinner/sun8i-h3-orangepi-pc allwinner/sun8i-h3-orangepi-pc-plus allwinner/sun8i-h3-orangepi-one allwinner/sun8i-h3-orangepi-plus2e allwinner/sun8i-h2-plus-bananapi-m2-zero"
 
 # GPU
-BR2_PACKAGE_BATOCERA_LIMA_MESA3D=y
+BR2_PACKAGE_SYSTEM_LIMA_MESA3D=y
 
 # Allow wayland
 BR2_PACKAGE_REGLINUX_SWAY=y
@@ -43,6 +43,3 @@ BR2_PACKAGE_MTD=y
 
 # Filesystem
 BR2_TARGET_ROOTFS_CPIO_LZ4=y
-
-# Parallel build ON
-BR2_PER_PACKAGE_DIRECTORIES=y

@@ -7,7 +7,8 @@ BR2_cortex_a76_a55=y
 BR2_ARM_FPU_NEON_FP_ARMV8=y
 BR2_PACKAGE_SYSTEM_TARGET_RK3588=y
 # As of rockchip-linux-5.10-rkr3.6, the vendored kernel does not like -fsigned-char, do NOT add it to BR2_TARGET_OPTIMIZATION=
-BR2_TARGET_OPTIMIZATION="-pipe -mcpu=cortex-a76.cortex-a55 -mtune=cortex-a76.cortex-a55"
+BR2_TARGET_OPTIMIZATION="-pipe"
+# -mcpu=cortex-a76.cortex-a55 -mtune=cortex-a76.cortex-a55"
 BR2_TARGET_GENERIC_GETTY_PORT="/dev/ttyFIQ0"
 BR2_TARGET_GENERIC_GETTY_BAUDRATE_115200=y
 BR2_GLOBAL_PATCH_DIR="$(BR2_EXTERNAL_REGLINUX_PATH)/board/patches $(BR2_EXTERNAL_REGLINUX_PATH)/board/reglinux/patches/aarch64 $(BR2_EXTERNAL_REGLINUX_PATH)/board/rockchip/patches $(BR2_EXTERNAL_REGLINUX_PATH)/board/rockchip/rk3588/patches"
@@ -19,11 +20,10 @@ BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_6_1=y
 
 # Kernel
 BR2_LINUX_KERNEL=y
-BR2_LINUX_KERNEL_CUSTOM_GIT=y
-BR2_LINUX_KERNEL_CUSTOM_REPO_URL="https://github.com/armbian/linux-rockchip.git"
-BR2_LINUX_KERNEL_CUSTOM_REPO_VERSION="rk-6.1-rkr5"
-BR2_LINUX_KERNEL_PATCH="$(BR2_EXTERNAL_REGLINUX_PATH)/board/rockchip/rk3588/linux_patches $(BR2_EXTERNAL_REGLINUX_PATH)/board/reglinux/linux_patches/aarch64"
+BR2_LINUX_KERNEL_CUSTOM_TARBALL=y
+BR2_LINUX_KERNEL_CUSTOM_TARBALL_LOCATION="$(call github,armbian,linux-rockchip,623b4385c236eed229af0cf818f89c8a8e95da01)/linux-623b4385c236eed229af0cf818f89c8a8e95da01.tar.gz"
 BR2_LINUX_KERNEL_USE_CUSTOM_CONFIG=y
+BR2_LINUX_KERNEL_PATCH="$(BR2_EXTERNAL_REGLINUX_PATH)/board/rockchip/rk3588/linux_patches $(BR2_EXTERNAL_REGLINUX_PATH)/board/reglinux/linux_patches/rk3588-6.1"
 BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE="$(BR2_EXTERNAL_REGLINUX_PATH)/board/rockchip/rk3588/linux-defconfig.config"
 BR2_LINUX_KERNEL_CONFIG_FRAGMENT_FILES="$(BR2_EXTERNAL_REGLINUX_PATH)/board/reglinux/linux-defconfig-reglinux.config"
 BR2_LINUX_KERNEL_NEEDS_HOST_OPENSSL=y

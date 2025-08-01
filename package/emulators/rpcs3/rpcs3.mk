@@ -3,8 +3,8 @@
 # rpcs3
 #
 ################################################################################
-# Version v0.0.36 - Commits on Mar 30, 2025
-RPCS3_VERSION = v0.0.36
+# Version v0.0.37 - Commits on May 31, 2025
+RPCS3_VERSION = v0.0.37
 RPCS3_SITE = https://github.com/RPCS3/rpcs3.git
 RPCS3_SITE_METHOD=git
 RPCS3_GIT_SUBMODULES=YES
@@ -29,14 +29,9 @@ RPCS3_CONF_OPTS += -DUSE_SYSTEM_LIBUSB=ON
 RPCS3_CONF_OPTS += -DUSE_LIBEVDEV=ON
 RPCS3_CONF_OPTS += -DUSE_SYSTEM_FAUDIO=ON
 RPCS3_CONF_OPTS += -DUSE_SYSTEM_SDL=ON
+RPCS3_CONF_OPTS += -DUSE_SDL=ON
 
 RPCS3_CONF_ENV = LIBS="-ncurses -ltinfo"
-
-ifeq ($(BR2_PACKAGE_SDL2),y)
-    RPCS3_CONF_OPTS += -DUSE_SDL=ON
-else
-    RPCS3_CONF_OPTS += -DUSE_SDL=OFF
-endif
 
 ifeq ($(BR2_PACKAGE_REGLINUX_VULKAN),y)
     RPCS3_CONF_OPTS += -DUSE_VULKAN=ON
