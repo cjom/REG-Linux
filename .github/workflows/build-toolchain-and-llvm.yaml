@@ -83,7 +83,7 @@ jobs:
             sleep 20
           done
           
-          cacheID="$(gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/**', '.gitmodules') }} --json id --jq '.[].id')"
+          cacheID="$(gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/package/llvm-project/**', '.gitmodules') }} --json id --jq '.[].id')"
           if [ -n "${cacheID}" ]
           then
             echo "Toolchain already cached with ID=${cacheID}"
@@ -111,7 +111,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ./output/${{ matrix.target }}
-          key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/**', '.gitmodules') }}
+          key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/package/llvm-project/**', '.gitmodules') }}
 
   compile-llvm:
     name: Compile LLVM/CLANG/LIBCBC/MUSL
@@ -155,7 +155,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ./output/${{ matrix.target }}
-          key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/**', '.gitmodules') }}
+          key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/package/llvm-project/**', '.gitmodules') }}
 
       - name: Compile LLVM
         id: compile_llvm_step
