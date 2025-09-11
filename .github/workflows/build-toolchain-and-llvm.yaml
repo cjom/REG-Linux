@@ -11,7 +11,7 @@ on:
       - '.github/workflows/build-toolchain-and-llvm.yaml'
 
 concurrency:
-    group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
+    group: ${{ github.repository }}-${{ github.workflow }}
     cancel-in-progress: true
 
 permissions:
@@ -26,12 +26,12 @@ jobs:
       donewcache: ${{ steps.compile_toolchain_step.outputs.donewcache }}
     strategy:
       matrix:
-        arch: [aarch64-musl, aarch64-glibc]
+        arch: [aarch64-musl]
         include:
           # MUSL 64 bit
           - target: rk3326
-            arch: aarch64-musl
             cpu: cortex_a35
+            arch: aarch64-musl
 
     steps:
       - name: Login to GHCR
@@ -113,7 +113,7 @@ jobs:
       dorelease: ${{ steps.compile_llvm_step.outputs.dorelease }}
     strategy:
       matrix:
-        cpu: [cortex_a35, cortex_a55]
+        cpu: [cortex_a35]
         include:
           # MUSL 64 bit
           - target: rk3326
