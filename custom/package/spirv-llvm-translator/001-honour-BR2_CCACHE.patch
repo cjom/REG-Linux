@@ -11,7 +11,7 @@
 +    find_program(CCACHE_EXE_FOUND ccache)
 +  else()
 +    option(CCACHE_ALLOWED "allow use of ccache" OFF)
-+  endif()  find_program(CCACHE_EXE_FOUND ccache)
++  endif()
    if(CCACHE_EXE_FOUND AND CCACHE_ALLOWED)
      message(STATUS "Found ccache: ${CCACHE_EXE_FOUND}")
      set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)

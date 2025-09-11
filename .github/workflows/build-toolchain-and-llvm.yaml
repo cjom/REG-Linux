@@ -7,7 +7,7 @@ on:
       - master
     paths:
       - '.gitmodules'
-      - 'custom/package/llvm-project/**'
+      - 'custom/package/*llvm*/**'
       - '.github/workflows/build-toolchain-and-llvm.yaml'
 
 concurrency:
