@@ -14,6 +14,7 @@
 ++++++++++++++++++++++++++++++++  package/python-pyelftools/Config.in.host
 ++++++++++++++++++++++++++++++++  package/python-pylibfdt/Config.in.host
 ++++++++++++++++++++++++++++++++  package/python-setuptools-scm/Config.in.host
+++++++++++++++++++++++++++++++++  package/spirv-llvm-translator/001-honour-BR2_CCACHE.patch
 ++++++++++++++++++++++++++++++++  package/spirv-llvm-translator/Config.in
 --------------------------------  package/llvm-project/libclc/0001-support-out-of-tree-build.patch
 --------------------------------  package/llvm-project/llvm/0001-ADT-Add-cstdint-to-SmallVector-101761.patch
