@@ -26,12 +26,36 @@ jobs:
       donewcache: ${{ steps.compile_toolchain_step.outputs.donewcache }}
     strategy:
       matrix:
-        arch: [aarch64-musl]
+        arch: [armhf-musl, armv7-musl, aarch64-musl, mips-musl, aarch64-glibc, riscv-glibc, asahi-glibc, x86_64-glibc]
         include:
+          # MUSL 32 bit
+          - target: bcm2835
+            arch: armhf-musl
+            cpu: arm1176jzf_s
+          - target: h3
+            arch: armv7-musl
+            cpu: cortex_a7
           # MUSL 64 bit
           - target: rk3326
-            cpu: cortex_a35
             arch: aarch64-musl
+            cpu: cortex_a35
+          - target: jz4770
+            arch: mips-musl
+            cpu: jz4770
+          # GLIBC
+          - target: rk3568
+            arch: aarch64-glibc
+            cpu: cortex_a55
+          - target: jh7110
+            arch: riscv-glibc
+            cpu: riscv
+          - target: asahi
+            arch: asahi-glibc
+            cpu: saphira
+          - target: x86_64
+            arch: x86_64-glibc
+            cpu: x86_64
+      fail-fast: false
 
     steps:
       - name: Login to GHCR
@@ -73,22 +97,23 @@ jobs:
             sleep 20
           done
           
-          cacheID="$(gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/package/llvm-project/**', '.gitmodules') }} --json id --jq '.[].id')"
+          cacheID="$(gh cache list --key toolchain-${{ matrix.arch }}-${{ hashFiles('custom/package/*llvm*/**', '.gitmodules') }} --json id --jq '.[].id')"
           if [ -n "${cacheID}" ]
           then
             echo "Toolchain already cached with ID=${cacheID}"
             echo "donewcache=false" >> "$GITHUB_OUTPUT"
           else
+            jobsandload="-j$(nproc) -l$(( $(nproc) - 1 ))"
             # Build with 3 trials in case of download failure that sometimes happens
-            PARALLEL_BUILD=n DEBUG_BUILD=n CCACHE_DISABLE=1 make -j4 -l4 PKG=alsa-lib ${{ matrix.target }}-pkg || {
+            PARALLEL_BUILD=n DEBUG_BUILD=n CCACHE_DISABLE=1 make ${jobsandload} PKG=alsa-lib ${{ matrix.target }}-pkg || {
               echo "Retrying build after failure..."
               sleep 30
-              PARALLEL_BUILD=n DEBUG_BUILD=n CCACHE_DISABLE=1 make -j4 -l4 PKG=alsa-lib ${{ matrix.target }}-pkg || {
+              PARALLEL_BUILD=n DEBUG_BUILD=n CCACHE_DISABLE=1 make ${jobsandload} PKG=alsa-lib ${{ matrix.target }}-pkg || {
                 echo "Retrying build a final time..."
                 sleep 60
-                PARALLEL_BUILD=n DEBUG_BUILD=n CCACHE_DISABLE=1 make -j4 -l4 PKG=alsa-lib ${{ matrix.target }}-pkg
+                PARALLEL_BUILD=n DEBUG_BUILD=n CCACHE_DISABLE=1 make ${jobsandload} PKG=alsa-lib ${{ matrix.target }}-pkg
               }
-            }            
+            }
             echo "donewcache=true" >> "$GITHUB_OUTPUT"
             for id in $(gh cache list --key toolchain-${{ matrix.arch }} --json id --jq '.[].id'); do
               gh cache delete $id ||:
@@ -101,7 +126,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ./output/${{ matrix.target }}
-          key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/package/llvm-project/**', '.gitmodules') }}
+          key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/package/*llvm*/**', '.gitmodules') }}
 
   compile-llvm:
     name: Compile LLVM/CLANG/LIBCBC/MUSL
@@ -113,12 +138,68 @@ jobs:
       dorelease: ${{ steps.compile_llvm_step.outputs.dorelease }}
     strategy:
       matrix:
-        cpu: [cortex_a35]
+        cpu: [arm1176jzf_s, cortex_a7, cortex_a9, cortex_a15_a7, cortex_a17, cortex_a35, cortex_a53, jz4770, cortex_a55, cortex_a72, cortex_a72_a53, cortex_a73_a53, cortex_a75_a55, cortex_a76, cortex_a76_a55, riscv, saphira, x86_64, x86_64_v3]
         include:
+          # MUSL 32 bit
+          - target: bcm2835
+            arch: armhf-musl
+            cpu: arm1176jzf_s
+          - target: h3
+            arch: armv7-musl
+            cpu: cortex_a7
+          - target: s812
+            arch: armv7-musl
+            cpu: cortex_a9
+          - target: odroidxu4
+            arch: armv7-musl
+            cpu: cortex_a15_a7
+          - target: rk3288
+            arch: armv7-musl
+            cpu: cortex_a17
           # MUSL 64 bit
           - target: rk3326
             arch: aarch64-musl
             cpu: cortex_a35
+          - target: h616
+            arch: aarch64-musl
+            cpu: cortex_a53
+          - target: jz4770
+            arch: mips-musl
+            cpu: jz4770
+          # GLIBC
+          - target: rk3568
+            arch: aarch64-glibc
+            cpu: cortex_a55
+          - target: bcm2711
+            arch: aarch64-glibc
+            cpu: cortex_a72
+          - target: rk3399
+            arch: aarch64-glibc
+            cpu: cortex_a72_a53
+          - target: s922x
+            arch: aarch64-glibc
+            cpu: cortex_a73_a53
+          - target: odin
+            arch: aarch64-glibc
+            cpu: cortex_a75_a55
+          - target: bcm2712
+            arch: aarch64-glibc
+            cpu: cortex_a76
+          - target: sm8250
+            arch: aarch64-glibc
+            cpu: cortex_a76_a55
+          - target: jh7110
+            arch: riscv-glibc
+            cpu: riscv
+          - target: asahi
+            arch: asahi-glibc
+            cpu: saphira
+          - target: x86_64
+            arch: x86_64-glibc
+            cpu: x86_64
+          - target: x86_64_v3
+            arch: x86_64-glibc
+            cpu: x86_64_v3
       fail-fast: false
 
     steps:
@@ -139,7 +220,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ./output/${{ matrix.target }}
-          key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/package/llvm-project/**', '.gitmodules') }}
+          key: toolchain-${{ matrix.arch }}-${{ hashFiles('custom/package/*llvm*/**', '.gitmodules') }}
 
       - name: Compile LLVM
         id: compile_llvm_step
@@ -159,6 +240,7 @@ jobs:
           sed -i 's/ -mabi=lp64d -mcpu=sifive-u74//' configs/reglinux-jh7110.board ||:
           
           # Get LLVM version
+          CUSTOM_DIR="$PWD/custom" BUILDROOT_DIR="$PWD/buildroot" "$PWD/scripts/linux/mergeToBR.sh"
           llvmversion="$(grep -m 1 LLVM_PROJECT_VERSION_MAJOR buildroot/package/llvm-project/llvm-project.mk | sed -e 's/.*=[ ]*//')$(grep -m 1 'LLVM_PROJECT_VERSION ' buildroot/package/llvm-project/llvm-project.mk | sed -e 's/.*)//')"
           echo "llvmversion=${llvmversion}"
           echo "llvmversion=${llvmversion}" >> "$GITHUB_OUTPUT"
@@ -175,7 +257,7 @@ jobs:
             # Enable the flag to build LLVM/CLANG/LIBCLC from source
             sed -i 's/#BR2_PACKAGE_LLVM_BUILD_FROM_SOURCE=y/BR2_PACKAGE_LLVM_BUILD_FROM_SOURCE=y/' configs/reglinux-board.common
             
-            jobsandload="-j4 -l3"
+            jobsandload="-j$(nproc) -l$(( $(nproc) - 1 ))"
             # Build with 3 trials in case of download failure that sometimes happens
             PARALLEL_BUILD=n DEBUG_BUILD=n CCACHE_DISABLE=1 make ${jobsandload} PKG=llvm ${{ matrix.target }}-pkg || {
               echo "Retrying build after failure..."
@@ -187,11 +269,6 @@ jobs:
               }
             }
 
-            case ${{ matrix.arch }} in
-              riscv64gc-glibc|x86_64-glibc)
-                jobsandload="-j1 -l1"
-                ;;
-            esac
             # Build with 3 trials in case of download failure that sometimes happens
             PARALLEL_BUILD=n DEBUG_BUILD=n CCACHE_DISABLE=1 make ${jobsandload} PKG=clang ${{ matrix.target }}-pkg || {
               echo "Retrying build after failure..."
@@ -203,11 +280,6 @@ jobs:
               }
             }
             
-            case ${{ matrix.arch }} in
-              riscv64gc-glibc|x86_64-glibc)
-                jobsandload="-j4 -l3"
-                ;;
-            esac
             # Build with 3 trials in case of download failure that sometimes happens
             PARALLEL_BUILD=n DEBUG_BUILD=n CCACHE_DISABLE=1 make ${jobsandload} PKG=libclc ${{ matrix.target }}-pkg || {
               echo "Retrying build after failure..."
@@ -278,7 +350,7 @@ jobs:
         uses: softprops/action-gh-release@master
         with:
           repository: REG-Linux/REG-llvm-binaries
-          token: ${{ secrets.token }}
+          token: ${{ secrets.REG_TOKEN }}
           files: |
             reglinux-llvm-${{ needs.compile-llvm.outputs.llvmversion }}-*
             reglinux-clang-${{ needs.compile-llvm.outputs.llvmversion }}-*
