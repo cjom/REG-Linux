@@ -26,12 +26,8 @@ jobs:
       donewcache: ${{ steps.compile_toolchain_step.outputs.donewcache }}
     strategy:
       matrix:
-        arch: [armv7-musl, aarch64-musl, aarch64-glibc]
+        arch: [aarch64-musl, aarch64-glibc]
         include:
-          # MUSL 32 bit
-          - target: h3
-            arch: armv7-musl
-            cpu: cortex_a7
           # MUSL 64 bit
           - target: rk3326
             arch: aarch64-musl
@@ -51,7 +47,9 @@ jobs:
           password: ${{ github.token }}
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+        with:
+          submodules: true
 
       - name: Compile toolchain
         id: compile_toolchain_step
@@ -60,9 +58,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          git submodule init
-          git submodule update
-          
           # Patch Makefile to use 'reglinux-build:latest' docker image from ghcr.io
           sed -i '/^DOCKER_REPO/ s|reglinux|ghcr.io/reg-linux|' Makefile
           sed -i '/ build . -t /d' Makefile
@@ -123,12 +118,8 @@ jobs:
       dorelease: ${{ steps.compile_llvm_step.outputs.dorelease }}
     strategy:
       matrix:
-        cpu: [cortex_a7, cortex_a35, cortex_a55]
+        cpu: [cortex_a35, cortex_a55]
         include:
-          # MUSL 32 bit
-          - target: h3
-            arch: armv7-musl
-            cpu: cortex_a7
           # MUSL 64 bit
           - target: rk3326
             arch: aarch64-musl
@@ -148,7 +139,9 @@ jobs:
           password: ${{ github.token }}
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+        with:
+          submodules: true
 
       - name: Restore toolchain cache
         id: restore_toolchain_cache
@@ -161,9 +154,6 @@ jobs:
         id: compile_llvm_step
         shell: bash
         run: |
-          git submodule init
-          git submodule update
-          
           # Patch Makefile to use 'reglinux-build:latest' docker image from ghcr.io
           sed -i '/^DOCKER_REPO/ s|reglinux|ghcr.io/reg-linux|' Makefile
           sed -i '/ build . -t /d' Makefile
