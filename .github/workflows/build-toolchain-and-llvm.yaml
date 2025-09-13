@@ -104,7 +104,7 @@ jobs:
             sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n:' buildroot/package/pkg-generic.mk
             
             # Temp fix for riscv64
-            sed -i 's/ -mabi=lp64d -mcpu=sifive-u74//' configs/reglinux-jh7110.board ||:
+            sed -i 's/ -mabi=lp64d -mcpu=sifive-u74//' configs/reglinux-jh7110.board || :
             
             jobsandload="-j$(nproc) -l$(( $(nproc) - 1 ))"
             # Build with 3 trials in case of download failure that sometimes happens
@@ -119,7 +119,7 @@ jobs:
             }
             echo "donewcache=true" >> "$GITHUB_OUTPUT"
             for id in $(gh cache list --key toolchain-${{ matrix.arch }} --json id --jq '.[].id'); do
-              gh cache delete $id ||:
+              gh cache delete $id || :
             done
           fi
 
@@ -182,9 +182,9 @@ jobs:
           - target: s922x
             arch: aarch64-glibc
             cpu: cortex_a73_a53
-          # - target: odin
-          #  arch: aarch64-glibc
-          #  cpu: cortex_a75_a55
+          - target: odin
+            arch: aarch64-glibc
+            cpu: cortex_a75_a55
           - target: bcm2712
             arch: aarch64-glibc
             cpu: cortex_a76
@@ -252,7 +252,7 @@ jobs:
             sed -i '/stamp_installed\:/,/stamp_dircleaned\:/ s:^$:\trm -rfv "\$(\$(PKG)_DL_DIR)"\n:' buildroot/package/pkg-generic.mk
             
             # Temp fix for riscv64
-            sed -i 's/ -mabi=lp64d -mcpu=sifive-u74//' configs/reglinux-jh7110.board ||:
+            sed -i 's/ -mabi=lp64d -mcpu=sifive-u74//' configs/reglinux-jh7110.board || :
             
             # Hack needed to retrieve the proper staging name directory when packaging
             sed -i '/stamp_staging_installed\:/,/stamp_images_installed\:/ s:^$:\techo "host/\$(GNU_TARGET_NAME)/sysroot" > "\$(BUILD_DIR)/staging.dir"\n:' buildroot/package/pkg-generic.mk
@@ -276,7 +276,7 @@ jobs:
             
             # Create package
             cd "${GITHUB_WORKSPACE}/output/${{ matrix.target }}" || exit 1
-            staging="$(</build/staging.dir)"
+            staging="$(<"${GITHUB_WORKSPACE}/output/${{ matrix.target }}/build/staging.dir")"
             
             cat build/*llvm-*/.files-list-host.txt | cut -d ',' -f 2 | sed -e 's+^./+host/+g' >llvm-filelist.txt
             cat build/*llvm-*/.files-list-staging.txt | cut -d ',' -f 2 | sed -e "s+^./+${staging}/+g" >>llvm-filelist.txt
