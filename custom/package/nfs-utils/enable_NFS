@@ -1,19 +1,19 @@
-#!/bin/bash
+#!/bin/dash
 case "$1" in
-  start|stop|restart|reload)
-    ;;
-  status)
-    [ "$(/usr/bin/system-settings-get system.nfs.enabled)" = "1" ] && echo "NFS status: enabled" || echo "NFS status: disabled"
-    ;;
+  start|stop|restart|reload) exit 0 ;;
   enabled)
-      /usr/bin/system-settings-set system.nfs.enabled 1
-      /etc/init.d/S60nfs start
+    /usr/bin/system-settings-set system.nfs.enabled 1 >/dev/null 2>&1
+    exec /etc/init.d/S60nfs start
     ;;
   disabled)
-      /etc/init.d/S60nfs stop
-      /usr/bin/system-settings-set system.nfs.enabled 0
+    /etc/init.d/S60nfs stop
+    exec /usr/bin/system-settings-set system.nfs.enabled 0
+    ;;
+  status)
+    { [ "$(/usr/bin/system-settings-get system.nfs.enabled 2>/dev/null)" = "1" ] && printf 'NFS status: enabled\n'; } || printf 'NFS status: disabled\n'
     ;;
   *)
-    echo "Usage: $0 {start|stop|restart|reload|enabled|disabled|status}"
+    printf 'Usage: %s {start|stop|restart|reload|enabled|disabled|status}\n' "${0##*/}" >&2
     exit 1
+    ;;
 esac

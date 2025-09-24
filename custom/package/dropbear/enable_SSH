@@ -1,10 +1,6 @@
-#!/bin/bash
+#!/bin/dash
 case "$1" in
-  start|stop|restart|reload)
-    ;;
-  status)
-    [ "$(/usr/bin/system-settings-get system.ssh.enabled)" = "0" ] && echo "SSH status: disabled" || echo "SSH status: enabled"
-    ;;
+  start|stop|restart|reload) ;;
   enabled)
       /usr/bin/system-settings-set system.ssh.enabled 1
       /etc/init.d/S35securepasswd start   # In case security enforcement changed.
@@ -14,7 +10,10 @@ case "$1" in
       /etc/init.d/S50dropbear stop
       /usr/bin/system-settings-set system.ssh.enabled 0
     ;;
+  status)
+    { [ "$(/usr/bin/system-settings-get system.ssh.enabled)" = "0" ] && printf 'SSH status: disabled\n'; } || printf 'SSH status: enabled\n'
+    ;;
   *)
-    echo "Usage: $0 {start|stop|restart|reload|enabled|disabled|status}"
+    printf 'Usage: %s {start|stop|restart|reload|enabled|disabled|status}\n' "${0##*/}" >&2
     exit 1
 esac

@@ -1,27 +1,18 @@
-#!/bin/sh
-#
-# Make system.conf specific values available to system-boot.conf
-# in a very early boot stage process where the regular conf-file
-# is not available.
+#!/bin/dash
+case $1 in
+    stop) ;;        # Only copy values on shutdown/reboot
+    *) exit 0 ;;
+esac
 
-# Only copy values on shutdown/reboot
-[ "$1" = "stop" ] || exit 0
-
+# Make system.conf specific values available to system-boot.conf in a very
+# early boot stage process where the regular conf-file is not available.
 set --
 for key in wifi.enabled wifi.ssid wifi.key wifi2.ssid wifi2.key wifi3.ssid wifi3.key wifi.hidden.ssid wifi.hidden.key system.timezone es.resolution system.hostname
 do
-    value="$(/usr/bin/system-settings-get "$key")" # in case it is empty, it must be set in the system-boot.conf file to erase any existing value
-    if [ "$value" != "$(/usr/bin/system-settings-get -f /boot/system-boot.conf "$key")" ]
-    then
-        set -- "$@" "$key" "$value"
-    fi
+    current_value="$(/usr/bin/system-settings-get "$key")"
+    boot_value="$(/usr/bin/system-settings-get -f /boot/system-boot.conf "$key")"
+    [ "$current_value" != "$boot_value" ] && set -- "$@" "$key" "$current_value"     # Only queue for update if they differ
 done
 
-if [ $# -gt 0 ]
-then
-    mount -o remount,rw /boot
-    /usr/bin/system-settings-set -f /boot/system-boot.conf "$@"
-    mount -o remount,ro /boot
-fi
-
-exit $?
+# Only remount and write if we have changes
+[ $# -gt 0 ] && mount -o remount,rw /boot && /usr/bin/system-settings-set -f /boot/system-boot.conf "$@" && mount -o remount,ro /boot

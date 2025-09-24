@@ -1,10 +1,6 @@
-#!/bin/bash
+#!/bin/dash
 case "$1" in
-  start|stop|restart|reload)
-    ;;
-  status)
-    [ "$(/usr/bin/system-settings-get system.samba.enabled)" = "0" ] && echo "SAMBA status: disabled" || echo "SAMBA status: enabled"
-    ;;
+  start|stop|restart|reload) ;;
   enabled)
       /usr/bin/system-settings-set system.samba.enabled 1
       /etc/init.d/S35securepasswd start   # In case security enforcement changed.
@@ -15,6 +11,12 @@ case "$1" in
       /etc/init.d/S91ksmbd stop
       /etc/init.d/S93wsdd stop
       /usr/bin/system-settings-set system.samba.enabled 0
+    ;;
+  status)
+      case "$(/usr/bin/system-settings-get system.samba.enabled)" in
+        0) printf "SAMBA status: disabled\n" ;;
+        *) printf "SAMBA status: enabled\n" ;;
+      esac
     ;;
   *)
     echo "Usage: $0 {start|stop|restart|reload|enabled|disabled|status}"

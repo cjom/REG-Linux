@@ -1,35 +1,82 @@
 diff --git a/package/dropbear/S50dropbear b/package/dropbear/S50dropbear
-index 9474eaafaa..335ea278f9 100644
+index 9474eaafaa..a0c749757b 100644
 --- a/package/dropbear/S50dropbear
 +++ b/package/dropbear/S50dropbear
-@@ -3,10 +3,17 @@
+@@ -1,10 +1,11 @@
+-#!/bin/sh
+-#
++#!/bin/dash
  # Starts dropbear sshd.
- #
- 
-+# REG-Linux
-+if [ "$(/usr/bin/system-settings-get system.ssh.enabled)" = "0" ]; then
-+    echo "SSH services are disabled"
-+    exit
-+fi
+-#
 +
++# adapted by REG-Linux team
++[ "$(/usr/bin/system-settings-get system.ssh.enabled)" = "0" ] && printf 'SSH services are disabled\n' && exit
+ 
  # Allow a few customizations from a config file
- test -r /etc/default/dropbear && . /etc/default/dropbear
+-test -r /etc/default/dropbear && . /etc/default/dropbear
++[ -r /etc/default/dropbear ] && . /etc/default/dropbear
  
  start() {
-+
  	DROPBEAR_ARGS="$DROPBEAR_ARGS -R"
+@@ -14,48 +15,38 @@ start() {
+ 	#     create the directory pointed to by the symlink.
+ 	#   - the filesystem is RW (i.e. we can rm the symlink),
+ 	#     replace the symlink with an actual directory
+-	if [ -L /etc/dropbear \
+-	     -a "$(readlink /etc/dropbear)" = "/var/run/dropbear" ]
+-	then
++	if [ -L /etc/dropbear ] && [ "$(readlink /etc/dropbear 2>/dev/null)" = "/var/run/dropbear" ]; then
+ 		if rm -f /etc/dropbear >/dev/null 2>&1; then
+ 			mkdir -p /etc/dropbear
+ 		else
+-			echo "No persistent location to store SSH host keys. New keys will be"
+-			echo "generated at each boot. Are you sure this is what you want to do?"
++			printf '%s\n' \
++			"No persistent location to store SSH host keys. New keys will be" \
++			"generated at each boot. Are you sure this is what you want to do?" >&2
+ 			mkdir -p "$(readlink /etc/dropbear)"
+ 		fi
+ 	fi
  
- 	# If /etc/dropbear is a symlink to /var/run/dropbear, and
-@@ -33,10 +40,11 @@ start() {
- 		--exec /usr/sbin/dropbear -- $DROPBEAR_ARGS
- 	[ $? = 0 ] && echo "OK" || echo "FAIL"
+ 	printf "Starting dropbear sshd: "
+ 	umask 077
+-
+-	start-stop-daemon -S -q -p /var/run/dropbear.pid \
+-		--exec /usr/sbin/dropbear -- $DROPBEAR_ARGS
+-	[ $? = 0 ] && echo "OK" || echo "FAIL"
++	{ start-stop-daemon -S -q -p /var/run/dropbear.pid --exec /usr/sbin/dropbear -- $DROPBEAR_ARGS && printf 'OK\n'; } || { printf 'FAIL\n' ; exit 1; }
  }
 +
  stop() {
  	printf "Stopping dropbear sshd: "
- 	start-stop-daemon -K -q -p /var/run/dropbear.pid
+-	start-stop-daemon -K -q -p /var/run/dropbear.pid
 -	[ $? = 0 ] && echo "OK" || echo "FAIL"
-+	pkill -f /usr/sbin/dropbear
++	start-stop-daemon -K -q -p /var/run/dropbear.pid || pkill -f /usr/sbin/dropbear >/dev/null 2>&1
++	printf 'OK\n'
  }
++
  restart() {
  	stop
+ 	start
+ }
+ 
+ case "$1" in
+-  start)
+-  	start
+-	;;
+-  stop)
+-  	stop
+-	;;
+-  restart|reload)
+-  	restart
+-	;;
++  start)          start ;;
++  stop)           stop  ;;
++  restart|reload) stop; start ;;
+   *)
+-	echo "Usage: $0 {start|stop|restart}"
++	printf 'Usage: %s {start|stop|restart}\n' "${0##*/}" >&2
+ 	exit 1
+ esac
+-
+-exit $?
