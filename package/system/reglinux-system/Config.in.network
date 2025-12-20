@@ -1,12 +1,6 @@
 config BR2_PACKAGE_REGLINUX_NETWORK
 	bool "REG-Linux networking stack"
 
-	# connman
-	select BR2_PACKAGE_CONNMAN		# network manager
-	select BR2_PACKAGE_CONNMAN_ETHERNET
-	select BR2_PACKAGE_CONNMAN_BLUETOOTH
-	select BR2_PACKAGE_CONNMAN_LOOPBACK
-
 	# wireless tools
 	select BR2_PACKAGE_IWD				# use IWS instead of wpa_supplicant
 	select BR2_PACKAGE_WIRELESS_REGDB		# wireless regulatory DB
@@ -16,6 +10,7 @@ config BR2_PACKAGE_REGLINUX_NETWORK
 	select BR2_PACKAGE_LIBOPENSSL_BIN		# required to encode the wifi password
 
 	# network services
+	select BR2_PACKAGE_DHCPCD			# DHCP client for wired connections (iwd manages wireless)
 	select BR2_PACKAGE_DROPBEAR			# ssh server
 	select BR2_PACKAGE_NTP				# ntp time sync protocol
 	select BR2_PACKAGE_REGLINUX_SAMBA		# samba stack based on ksmbd

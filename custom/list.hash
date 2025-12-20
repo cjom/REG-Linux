@@ -50,15 +50,15 @@ cb034aac334473e84995afe6d5bdaa43  package/bullet/bullet.mk
 a3dd0ea9d489564444fc1a999ebf907e  package/busybox/busybox.config
 19d9fb6941264218f01a320466f28f5b  package/busybox/busybox.mk
 9ce6c4b123d14bcad2d553c7a8b82879  package/cmake/cmake.mk
-3d3c78296119d9f980e4e8f8532322c5  package/connman/Config.in
-35b9d96eb0ce7d9d10cdc4539c5d268f  package/connman/S45connman
-0bee5324abaa5c4300ec7d6df7842687  package/connman/connman.mk
 5a7842aaa50ceb8daa5cc7c317961daa  package/cpuinfo/Config.in
 0aca90f49b6d2a06cc7f347d434b3745  package/dbus-broker/Config.in
 e2ea7480adb24a94f8ab05fd6110697e  package/dbus-broker/dbus-broker.mk
 62f04719035a96fab36b5d7a7b00446b  package/dbus-broker/dbus.socket
 be9ae1e921bac6ef8e7be5d99a56690f  package/dbus-broker/system.conf
 20556a52f1977a93232d7819f1ba3852  package/dbus/S30dbus
+7384aaa5359de9e42eceba1751be5267  package/dhcpcd/S41dhcpcd
+51fc8579bf45700884cb39d46273ac42  package/dhcpcd/dhcpcd.hash
+ed87fe5549fb988d8290f9e86e283c48  package/dhcpcd/dhcpcd.mk
 c445390118f5d058dd372a8b2beb25a8  package/dropbear/S50dropbear
 3e2a4b6edeb4427320a8a3246ed68e36  package/dropbear/dropbear.mk
 86c04ec68a28da8040820ff495bda9dd  package/espeak/espeak.mk
@@ -116,6 +116,8 @@ ad422751e4a60689e4198ccf4441ae25  package/ncurses/ncurses.mk
 2f684e20c082c44254682f410206d01d  package/nfs-utils/S60nfs
 935d74c65f26325e3cad2e8de8c7be73  package/nfs-utils/nfs-utils.mk
 4aec3b9512408660528c3c04a1b76221  package/ntfs-3g/ntfs-3g.mk
+572b5da4b3c5000a75e291bcabef7b14  package/openresolv/openresolv.hash
+c1d738f9374e1dae013553fc3371b87d  package/openresolv/openresolv.mk
 5469add2a569efa1603dfd2fbdab5f5e  package/opentyrian-data/Config.in
 7e501d1ce57a81b643283e62111b8c91  package/pcre2/Config.in
 c2df51f70ba99c291a3e795362431992  package/pigpio/pigpio.mk

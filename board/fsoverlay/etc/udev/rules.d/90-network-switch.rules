@@ -1,0 +1,11 @@
+# Disable WiFi when wired connection is detected
+ACTION=="change", SUBSYSTEM=="net", KERNEL=="eth*", ATTR{operstate}=="up", RUN+="/usr/sbin/rfkill block wifi &"
+ACTION=="change", SUBSYSTEM=="net", KERNEL=="en*", ATTR{operstate}=="up", RUN+="/usr/sbin/rfkill block wifi &"
+ACTION=="change", SUBSYSTEM=="net", KERNEL=="p1p*", ATTR{operstate}=="up", RUN+="/usr/sbin/rfkill block wifi &"
+ACTION=="change", SUBSYSTEM=="net", KERNEL=="eno*", ATTR{operstate}=="up", RUN+="/usr/sbin/rfkill block wifi &"
+
+# Re-enable WiFi when wired connection goes down
+ACTION=="change", SUBSYSTEM=="net", KERNEL=="eth*", ATTR{operstate}=="down", RUN+="/usr/sbin/rfkill unblock wifi &"
+ACTION=="change", SUBSYSTEM=="net", KERNEL=="en*", ATTR{operstate}=="down", RUN+="/usr/sbin/rfkill unblock wifi &"
+ACTION=="change", SUBSYSTEM=="net", KERNEL=="p1p*", ATTR{operstate}=="down", RUN+="/usr/sbin/rfkill unblock wifi &"
+ACTION=="change", SUBSYSTEM=="net", KERNEL=="eno*", ATTR{operstate}=="down", RUN+="/usr/sbin/rfkill unblock wifi &"

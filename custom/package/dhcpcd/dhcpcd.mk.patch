@@ -1,0 +1,26 @@
+diff --git a/package/dhcpcd/dhcpcd.mk b/package/dhcpcd/dhcpcd.mk
+index 3a4b0e10d7..a4280ebd02 100644
+--- a/package/dhcpcd/dhcpcd.mk
++++ b/package/dhcpcd/dhcpcd.mk
+@@ -4,7 +4,7 @@
+ #
+ ################################################################################
+ 
+-DHCPCD_VERSION = 10.1.0
++DHCPCD_VERSION = 10.3.0
+ DHCPCD_SOURCE = dhcpcd-$(DHCPCD_VERSION).tar.xz
+ DHCPCD_SITE = https://github.com/NetworkConfiguration/dhcpcd/releases/download/v$(DHCPCD_VERSION)
+ DHCPCD_DEPENDENCIES = host-pkgconf
+@@ -58,8 +58,10 @@ endef
+ # don't want the init script or service file to be installed.
+ ifeq ($(BR2_PACKAGE_NETWORK_MANAGER),)
+ define DHCPCD_INSTALL_INIT_SYSV
+-	$(INSTALL) -m 755 -D package/dhcpcd/S41dhcpcd \
+-		$(TARGET_DIR)/etc/init.d/S41dhcpcd
++	$(INSTALL) -m 755 -D package/dhcpcd/S41dhcpcd $(TARGET_DIR)/etc/init.d/S08dhcpcd
++	echo >> $(TARGET_DIR)/etc/dhcpcd.conf
++	echo '# Do not manage wifi interfaces, leave them to IWD' >> $(TARGET_DIR)/etc/dhcpcd.conf
++	echo 'denyinterfaces wl*' >> $(TARGET_DIR)/etc/dhcpcd.conf
+ endef
+ 
+ define DHCPCD_INSTALL_INIT_SYSTEMD

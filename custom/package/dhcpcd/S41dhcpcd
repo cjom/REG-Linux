@@ -1,0 +1,25 @@
+#!/bin/dash
+DAEMON=/sbin/dhcpcd
+CONFIG=/etc/dhcpcd.conf
+PIDFILE=/var/run/dhcpcd/pid
+
+case "$1" in
+  start)
+	[ -f $CONFIG ] && echo "Starting dhcpcd..." && start-stop-daemon -S -x "$DAEMON" -p "$PIDFILE" -- -f "$CONFIG"
+	;;
+  stop)
+	echo "Stopping dhcpcd..."
+	start-stop-daemon -K --retry=2/5 -x "$DAEMON" -p "$PIDFILE" -o
+	;;
+  reload|force-reload)
+	echo "Reloading dhcpcd configuration..."
+	"$DAEMON" -s reload
+	;;
+  restart)
+	"$0" stop
+	exec "$0" start
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart|reload|force-reload}"
+	exit 1
+esac

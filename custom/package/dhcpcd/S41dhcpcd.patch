@@ -1,0 +1,40 @@
+diff --git a/package/dhcpcd/S41dhcpcd b/package/dhcpcd/S41dhcpcd
+index 55794f4075..55920c439b 100644
+--- a/package/dhcpcd/S41dhcpcd
++++ b/package/dhcpcd/S41dhcpcd
+@@ -1,22 +1,15 @@
+-#!/bin/sh
+-#
+-# Start/stop dhcpcd
+-#
+-
++#!/bin/dash
+ DAEMON=/sbin/dhcpcd
+ CONFIG=/etc/dhcpcd.conf
+ PIDFILE=/var/run/dhcpcd/pid
+ 
+-[ -f $CONFIG ] || exit 0
+-
+ case "$1" in
+   start)
+-	echo "Starting dhcpcd..."
+-	start-stop-daemon -S -x "$DAEMON" -p "$PIDFILE" -- -f "$CONFIG"
++	[ -f $CONFIG ] && echo "Starting dhcpcd..." && start-stop-daemon -S -x "$DAEMON" -p "$PIDFILE" -- -f "$CONFIG"
+ 	;;
+   stop)
+ 	echo "Stopping dhcpcd..."
+-	start-stop-daemon -K -x "$DAEMON" -p "$PIDFILE" -o
++	start-stop-daemon -K --retry=2/5 -x "$DAEMON" -p "$PIDFILE" -o
+ 	;;
+   reload|force-reload)
+ 	echo "Reloading dhcpcd configuration..."
+@@ -24,8 +17,7 @@ case "$1" in
+ 	;;
+   restart)
+ 	"$0" stop
+-	sleep 1 # Prevent race condition: ensure dhcpcd stops before start.
+-	"$0" start
++	exec "$0" start
+ 	;;
+   *)
+ 	echo "Usage: $0 {start|stop|restart|reload|force-reload}"
